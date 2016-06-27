@@ -1,6 +1,6 @@
-# Cookbook-example Cookbook
+# Rb-monitor Cookbook
 
-cookbook to install and configure redborder cookbook-example
+Cookbook to install and configure redborder rb-monitor
 
 ### Platforms
 

@@ -1,7 +1,7 @@
-name             'cookbook-example'
-maintainer       'YOUR_COMPANY_NAME'
-maintainer_email 'YOUR_EMAIL'
+name             'rb-monitor'
+maintainer       'redborder'
+maintainer_email 'ejimenez@redborder.com'
 license          'All rights reserved'
-description      'Installs/Configures cookbook-example'
+description      'Installs/Configures rb-monitor'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          '0.1.0'
+version          '0.0.1'

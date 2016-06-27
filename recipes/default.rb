@@ -1,13 +1,13 @@
 #
-# Cookbook Name:: cookbook-example
+# Cookbook Name:: rb-monitor
 # Recipe:: default
 #
-# Copyright 2016, YOUR_COMPANY_NAME
+# redborder
 #
-# All rights reserved - Do Not Redistribute
+#  AFFERO GENERAL PUBLIC LICENSE, Version 3
 #
 
-cookbook_example_config "config" do
+rb_monitor_config "config" do
   mystring "test"
   action :add
 end
