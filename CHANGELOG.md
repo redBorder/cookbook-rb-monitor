@@ -1,4 +1,4 @@
-rb-monitor CHANGELOG
+rbmonitor CHANGELOG
 ==========================
 
 0.0.1

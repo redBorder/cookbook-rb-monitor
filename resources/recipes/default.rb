@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: rb-monitor
+# Cookbook Name:: rbmonitor
 # Recipe:: default
 #
 # redborder
@@ -7,7 +7,8 @@
 #  AFFERO GENERAL PUBLIC LICENSE, Version 3
 #
 
-rb_monitor_config "config" do
-  mystring "test"
+rbmonitor_config "config" do
+  name node["hostname"]
+  log_level 7
   action :add
 end
