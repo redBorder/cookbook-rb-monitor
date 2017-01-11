@@ -1,4 +1,4 @@
-# Rb-monitor Cookbook
+# Rbmonitor Cookbook
 
 Cookbook to install and configure redborder rb-monitor
 
@@ -23,4 +23,4 @@ Cookbook to install and configure redborder rb-monitor
 GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007
 
 ## Authors
-Authors: Enrique Jimenez <ejimenez@redborder.com>
+Authors: Enrique Jimenez <ejimenez@redborder.com>, Alberto Rodríguez <arodriguez@redborder.com>
