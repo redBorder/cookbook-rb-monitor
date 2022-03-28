@@ -12,7 +12,15 @@ action :add do
     community = new_resource.community
     log_level = new_resource.log_level
     user = "redborder-monitor"
-    
+    device_nodes = new_resource.device_nodes
+    flow_nodes = new_resource.flow_nodes
+    ipsync = new_resource.ipsync
+    managers = new_resource.managers
+    manager_index = new_resource.manager_index
+    manager_services = new_resource.manager_services
+    kafka_managers = new_resource.kafka_managers
+
+
     yum_package "redborder-monitor" do
       action :upgrade
     end
@@ -36,6 +44,9 @@ action :add do
       mode 755
     end
 
+    # Retrieve databag data
+    monitors_dg             = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitors_dg={}
+
     resource = {}
     resource["kafka_topic"] = kafka_topic
     resource["hostname"] = hostname
@@ -50,7 +61,15 @@ action :add do
       cookbook "rbmonitor"
       mode 0644
       retries 2
-      variables(:resource => resource)
+      variables(:resource => resource,
+                :device_nodes => device_nodes,
+                :flow_nodes => flow_nodes,
+                :ipsync => ipsync,
+                :managers => managers,
+                :manager_index => manager_index,
+                :kafka_managers => kafka_managers,
+                :manager_services => manager_services,
+                :monitors => monitors_dg["monitors"])
       helpers Rbmonitor::Helpers
       notifies :restart, "service[redborder-monitor]", :delayed
     end
