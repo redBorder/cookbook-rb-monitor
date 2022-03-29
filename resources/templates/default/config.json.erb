@@ -23,7 +23,7 @@
       "timeout":5,
       "sensor_name": "resourcemanager",
       "sensor_ip": "<%= @ipsync %>",
-      "community" : "redBorder",
+      "community" : "redborder",
       "snmp_version": "2c",
       "monitors": 
       [
@@ -38,7 +38,7 @@
       "timeout":5,
       "sensor_name": "overlord",
       "sensor_ip": "<%= @ipsync %>",
-      "community" : "redBorder",
+      "community" : "redborder",
       "snmp_version": "2c",
       "monitors": 
       [
@@ -54,7 +54,7 @@
       "timeout":5,
       "sensor_name": "coordinator",
       "sensor_ip": "<%= @ipsync %>",
-      "community" : "redBorder",
+      "community" : "redborder",
       "snmp_version": "2c",
       "monitors": 
       [
@@ -127,7 +127,7 @@
 <% mon = mon + 1 %>
 <% end %>
 <% if @monitors.nil? or @monitors.include?("disk_load") %>
-        {"name": "disk_load", "system": "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-0 ' | awk '{print $7}'", "unit": "%"},
+        {"name": "disk_load", "system": "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-0 ' | awk '{print $7}'", "unit": "%"},
 <% mon = mon + 1 %>
 <% end %>
 
@@ -143,7 +143,7 @@
 <% mon = mon + 1 %>
 <% end %>
 <% if @monitors.nil? or @monitors.include?("disk_aggregated_load") %>
-        {"name": "disk_aggregated_load", "system": "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-1 ' | awk '{print $7}'", "unit": "%"},
+        {"name": "disk_aggregated_load", "system": "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-1 ' | awk '{print $7}'", "unit": "%"},
 <% mon = mon + 1 %>
 <% end %>
 <% if File.exist?"/dev/mapper/vg_rbdata-lv_raw" %>
@@ -152,7 +152,7 @@
 <% mon = mon + 1 %>
 <% end %>
 <% if @monitors.nil? or @monitors.include?("disk_raw_load") %>
-        {"name": "disk_raw_load", "system": "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-2 ' | awk '{print $7}'", "unit": "%"},
+        {"name": "disk_raw_load", "system": "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-2 ' | awk '{print $7}'", "unit": "%"},
 <% mon = mon + 1 %>
 <% end %>
 <% end %>
@@ -162,7 +162,7 @@
 <% mon = mon + 1 %>
 <% end %>
 <% if @monitors.nil? or @monitors.include?("disk_raw_load") %>
-        {"name": "disk_raw_load", "system": "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-1 ' | awk '{print $7}'", "unit": "%"},
+        {"name": "disk_raw_load", "system": "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-1 ' | awk '{print $7}'", "unit": "%"},
 <% mon = mon + 1 %>
 <% end %>
 <% end %>
@@ -257,8 +257,8 @@
       "enrichment":{
           "sensor_name": "<%= dnode["rbname"].nil? ? dnode.name : dnode["rbname"] %>"
 <% ["sensor_uuid", "deployment", "deployment_uuid", "namespace", "namespace_uuid", "market", "market_uuid", "organization", "organization_uuid", "service_provider", "service_provider_uuid", "campus", "campus_uuid", "building", "building_uuid", "floor", "floor_uuid" ].each do |ss| %>
-<% if !dnode["redBorder"][ss].nil? and dnode["redBorder"][ss]!="" %>
-          ,"<%= ss %>": "<%= dnode["redBorder"][ss] %>"
+<% if !dnode["redborder"][ss].nil? and dnode["redborder"][ss]!="" %>
+          ,"<%= ss %>": "<%= dnode["redborder"][ss] %>"
 <% end %>
 <% end %>
       },
