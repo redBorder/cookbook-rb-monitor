@@ -1,6 +1,21 @@
 module Rbmonitor
   module Helpers
 
+    def enrich(resource_node)
+      node={}
+      node[:name] = resource_node["rbname"] if resource_node["rbname"]
+      node[:uuid] = resource_node["redborder"]["sensor_uuid"] if resource_node["redborder"] and resource_node["redborder"]["sensor_uuid"]
+      node[:service_provider] = resource_node["redborder"]["service_provider"] if resource_node["redborder"] and resource_node["redborder"]["service_provider"]
+      node[:service_provider_uuid] = resource_node["redborder"]["service_provider_uuid"] if resource_node["redborder"] and resource_node["redborder"]["service_provider_uuid"]
+      node[:namespace] = resource_node["redborder"]["namespace"] if resource_node["redborder"] and resource_node["redborder"]["namespace"]
+      node[:namespace_uuid] = resource_node["redborder"]["namespace_uuid"] if resource_node["redborder"] and resource_node["redborder"]["namespace_uuid"]
+      node[:organization] = resource_node["redborder"]["organization"] if resource_node["redborder"] and resource_node["redborder"]["organization"]
+      node[:organization_uuid] = resource_node["redborder"]["organization_uuid"] if resource_node["redborder"] and resource_node["redborder"]["organization_uuid"]
+      node[:building] = resource_node["redborder"]["building"] if resource_node["redborder"] and resource_node["redborder"]["building"]
+      node[:building_uuid] = resource_node["redborder"]["building_uuid"] if resource_node["redborder"] and resource_node["redborder"]["building_uuid"]
+      result = node
+    end
+
     def config_hash(resource)
       config = {}
 
@@ -31,7 +46,7 @@ module Rbmonitor
       community = resource["community"]
 
       ##########################
-      # MANAGER MONITORIZATION 
+      # MANAGER MONITORIZATION
       ##########################
 
       # SNMP MONITORS FOR MANAGERS
@@ -45,27 +60,27 @@ module Rbmonitor
         { "name" => "memory_total_buffer",  "oid" => "UCD-SNMP-MIB::memBuffer.0",     "unit" => "kB",   "send" => 0 },
         { "name" => "memory_total_cache",   "oid" => "UCD-SNMP-MIB::memCached.0",     "unit" => "kB",   "send" => 0 },
         { "name" => "memory",                                                         "unit" => "%",
-            "op" => "100*(memory_total-memory_free-memory_total_buffer-memory_total_cache)/memory_total" },
-        { "name" => "memory_buffer",                                                  "unit" => "%", 
-            "op" => "100*memory_total_buffer/memory_total" },
+          "op" => "100*(memory_total-memory_free-memory_total_buffer-memory_total_cache)/memory_total" },
+        { "name" => "memory_buffer",                                                  "unit" => "%",
+          "op" => "100*memory_total_buffer/memory_total" },
         { "name" => "memory_cache",                                                   "unit" => "%",
-            "op" => "100*memory_total_cache/memory_total" },
+          "op" => "100*memory_total_cache/memory_total" },
         { "name" => "swap_total",           "oid" => "UCD-SNMP-MIB::memTotalSwap.0",  "unit" => "kB",   "send" => 0,  "integer" => 1 },
         { "name" => "swap_free",            "oid" => "UCD-SNMP-MIB::memAvailSwap.0",  "unit" => "kB",   "send" => 0,  "integer" => 1 },
         { "name" => "swap",                                                           "unit" => "%",
-            "op" => "100*(swap_total-swap_free)/swap_total" },
+          "op" => "100*(swap_total-swap_free)/swap_total" },
         { "name" => "avio",                                                           "unit" => "ms",
-            "system" => "atop 2 2 |grep avio |  awk '{print $15}' | paste -s -d'+' | sed 's/^/scale=3; (/' | sed 's|$|)/2|' | bc" },
+          "system" => "atop 2 2 |grep avio |  awk '{print $15}' | paste -s -d'+' | sed 's/^/scale=3; (/' | sed 's|$|)/2|' | bc" },
         { "name" => "disk",                 "oid" => "UCD-SNMP-MIB::dskPercent.1",    "unit" => "%" },
         { "name" => "disk_load",                                                      "unit" => "%",
-            "system" => "snmptable -v 2c -c #{community} #{hostip} diskIOTable|grep ' dm-0 ' | awk '{print $7}'" }
+          "system" => "snmptable -v 2c -c #{community} #{hostip} diskIOTable|grep ' dm-0 ' | awk '{print $7}'" }
       ]
-      
+
       #Calculate used memory per service
       #TODO: script dependencies
       memory_monitors = []
-      #begin   
-      #  enabled_services = node["redborder"]["services"].map { |service| 
+      #begin
+      #  enabled_services = node["redborder"]["services"].map { |service|
       #    service.keys[0] if service.values[0]
       #  }
       #  enabled_services.delete_if { |service| service == nil }
@@ -77,17 +92,17 @@ module Rbmonitor
       #rescue
       #  puts "Can't access to redborder service list, skipping memory services monitorization"
       #end
-        
+
       #Create monitors array
       manager_monitors = []
       manager_monitors.concat(snmp_monitors)
       manager_monitors.concat(memory_monitors)
-        
+
       # TODO: script dependencies
       #if node["redborder"]["services"]["druid-middlemanager"]
       #  manager_monitors.push({ "name" => "running_tasks", "system" => "/opt/rb/bin/rb_get_tasks.sh -u -n 2>/dev/null", "unit" => "tasks", "integer" => 1})
       #end
-      
+
       manager_sensor = {
         "timeout" => 5,
         "sensor_name" => hostname,
@@ -111,16 +126,16 @@ module Rbmonitor
           sensor = {
             "timeout" => 5,
             "sensor_name" => next_manager,
-            "sensor_ip" => next_manager_ip, 
+            "sensor_ip" => next_manager_ip,
             "community" => community,
             "snmp_version" => "2c",
             "monitors" => [
-              { "name" => "latency", "unit" => "ms", 
-                  "system" => "nice -n 19 fping -q -s #{next_manager}.node 2>&1| grep 'avg round trip time'|awk '{print $1}'" },
+              { "name" => "latency", "unit" => "ms",
+                "system" => "nice -n 19 fping -q -s #{next_manager}.node 2>&1| grep 'avg round trip time'|awk '{print $1}'" },
               { "name" => "pkts_lost", "unit" => "%",
-                  "system" => "nice -n 19 fping -p 1 -c 10 #{next_manager}.node 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'" },
+                "system" => "nice -n 19 fping -p 1 -c 10 #{next_manager}.node 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'" },
               { "name" => "pkts_percent_rcv", "op" => "100 - pkts_lost", "unit" => "%" }
-            ] 
+            ]
           }
           config["sensors"].push(sensor)
         end
@@ -149,7 +164,7 @@ module Rbmonitor
       #    config["sensors"].push(sensor)
       #  end
       #rescue
-      #  puts "Error accessing to redborder service list, skipping hadoop-resourcemanager monitorization"          
+      #  puts "Error accessing to redborder service list, skipping hadoop-resourcemanager monitorization"
       #end
 
       # Druid overlord (TODO: resolve script dependencies)
@@ -195,7 +210,99 @@ module Rbmonitor
       # SENSOR MONITORIZATION
       #####################################
       # TODO
-      
+
+      # Remote sensors monitored or any managers
+      flow_nodes = resource["flow_nodes"]
+      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")
+      begin
+        if !flow_nodes.nil? and manager_list.length>0
+          flow_nodes.each_with_index do |fnode, findex|
+            inserted={}
+            if !fnode["redborder"]["monitors"].nil? and !fnode["ipaddress"].nil? and fnode["redborder"]["parent_id"].nil?
+              if (findex%manager_list.length != manager_list.index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size>0)
+                sensor = {
+                  "timeout" => 5,
+                  "sensor_name" => fnode["rbname"].nil? ? fnode.name : fnode["rbname"],
+                  "sensor_ip" => fnode["ipaddress"],
+                  "community" => (fnode["redborder"]["snmp_community"].nil? or fnode["redborder"]["snmp_community"]=="") ? "public" : fnode["redborder"]["snmp_community"].to_s,
+                  "snmp_version" => (fnode["redborder"]["snmp_version"].nil? or fnode["redborder"]["snmp_version"]=="") ? "2c" : fnode["redborder"]["snmp_version"].to_s,
+                  "enrichment" => enrich(flow_nodes[findex]),
+                  "monitors" =>
+                    if !fnode.nil? and !fnode["redborder"].nil? and !fnode["redborder"]["monitors"].nil?
+                      fnode["redborder"]["monitors"].each do |monit|
+                        if inserted[monit["name"]].nil? and (monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?(monit["name"]))
+                          send_kafka=false
+                          fnode["redborder"]["monitors"].each do |monit2|
+                            send_kafka=true if (monit2["name"] == monit["name"] and monit2["kafka"].nil? or monit2["kafka"]=="1" or monit2["kafka"]==1 or monit2["kafka"]==true)
+                          end
+                          keys = monit.keys.sort; keys.delete("name"); keys.delete("kafka"); keys.insert(0, "name")
+                          keys.each_with_index do |k, i|
+                            ((i!=0) ? ", " : "" ) ; k
+                            monit[k].to_s.gsub!("%sensor_ip", fnode["ipaddress"]).gsub("%snmp_community", (fnode["redborder"]["snmp_community"].nil? or fnode["redborder"]["snmp_community"]=="") ? "public" : fnode["redborder"]["snmp_community"].to_s).gsub("%telnet_user", fnode["redborder"]["telnet_user"].nil? ? "" : fnode["redborder"]["telnet_user"]).gsub("%telnet_password", fnode["redborder"]["telnet_password"].nil? ? "" : fnode["redborder"]["telnet_password"])
+                          end
+                          #"send" ; send_kafka ? "1" : "0"
+                          #inserted[monit["name"]]=true
+                        end
+                      end
+                    end
+
+                }
+                config["sensors"].push(sensor)
+              end
+            end
+          end
+        end
+      rescue
+        puts "Can't access to flow sensor, skipping..."
+      end
+
+      # DEVICES SENSORS
+      device_nodes = resource["device_nodes"]
+      begin
+        if !device_nodes.nil? and manager_list.length>0
+          device_nodes.each_with_index do |dnode, dindex|
+            inserted = {}
+            if !dnode["redborder"]["monitors"].nil? and !dnode["ipaddress"].nil? and dnode["redborder"]["parent_id"].nil?
+              if (dindex%manager_list.length != manager_list.index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length>0)
+                sensor = {
+                  "timeout" => 5,
+                  "sensor_name" => dnode["rbname"].nil? ? dnode.name : dnode["rbname"],
+                  "sensor_ip" => dnode["ipaddress"],
+                  "community" => (dnode["redborder"]["snmp_community"].nil? or dnode["redborder"]["snmp_community"]=="") ? "public" : dnode["redborder"]["snmp_community"].to_s,
+                  "snmp_version" => (dnode["redborder"]["snmp_version"].nil? or dnode["redborder"]["snmp_version"]=="") ? "2c" : dnode["redborder"]["snmp_version"].to_s,
+                  "enrichment" => enrich(device_nodes[dindex]),
+                  "monitors" => [
+                    if !dnode.nil? and !dnode["redborder"].nil? and !dnode["redborder"]["monitors"].nil?
+                      dnode["redborder"]["monitors"].each do |monit|
+                        if inserted[monit["name"]].nil? and (monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?(monit["name"]) or monit["name"].start_with? "custom_")
+                          send_kafka = "false"
+                          dnode["redborder"]["monitors"].each do |monit2|
+                            send_kafka = "true" if (monit2["name"] == monit["name"] and (monit2["send"].nil? or monit2["send"]==1 or monit2["send"]==true))
+                          end
+                          get_sensor = "rb_get_sensor"
+                          keys = monit.keys.sort; keys.delete("name"); keys.delete("send"); keys.insert(0, "name")
+                          keys.each_with_index do |k, i|
+                            ((i!=0) ? ", " : "") ; k
+                            monit[k].to_s.gsub!("%sensor_ip", dnode["ipaddress"])
+                            monit[k].to_s.gsub!("%snmp_community", (dnode["redborder"]["snmp_community"].nil? or dnode["redborder"]["snmp_community"]=="") ? "public" : dnode["redborder"]["snmp_community"].to_s)
+                            monit[k].to_s.gsub!("%telnet_user", dnode["redborder"]["telnet_user"].nil? ? "" : dnode["redborder"]["telnet_user"] )
+                            monit[k].to_s.gsub!("%telnet_password", dnode["redborder"]["telnet_password"].nil? ? "" : dnode["redborder"]["telnet_password"])
+                            #monit[k].to_s.gsub(rb_get_sensor.sh, (dnode["redborder"]["protocol"] == "IPMI" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? rb_get_sensor.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]} : rb_get_sensor.sh").gsub(rb_get_redfish.sh, (dnode["redborder"]["protocol"] == "Redfish" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? rb_get_redfish.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]}" : "rb_get_redfish.sh" )
+                          end
+                          #"send" ;  send_kafka ? "1" : "0"
+                        end
+                      end
+                    end
+                  ]
+                }
+                config["sensors"].push(sensor)
+              end
+            end
+          end
+        end
+      rescue
+        puts "Can't access to device sensor, skipping..."
+      end
 
       return config
     end
