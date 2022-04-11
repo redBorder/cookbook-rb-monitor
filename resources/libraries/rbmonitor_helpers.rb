@@ -238,14 +238,17 @@ module Rbmonitor
                           keys = monit.keys.sort; keys.delete("name"); keys.delete("kafka"); keys.insert(0, "name")
                           keys.each_with_index do |k, i|
                             ((i!=0) ? ", " : "" ) ; k
-                            monit[k].to_s.gsub!("%sensor_ip", fnode["ipaddress"]).gsub("%snmp_community", (fnode["redborder"]["snmp_community"].nil? or fnode["redborder"]["snmp_community"]=="") ? "public" : fnode["redborder"]["snmp_community"].to_s).gsub("%telnet_user", fnode["redborder"]["telnet_user"].nil? ? "" : fnode["redborder"]["telnet_user"]).gsub("%telnet_password", fnode["redborder"]["telnet_password"].nil? ? "" : fnode["redborder"]["telnet_password"])
+                            monit[k].to_s.gsub!("%sensor_ip", fnode["ipaddress"])
+                            monit[k].to_s.gsub!("%snmp_community", (fnode["redborder"]["snmp_community"].nil? or fnode["redborder"]["snmp_community"]=="") ? "public" : fnode["redborder"]["snmp_community"].to_s)
+                            monit[k].to_s.gsub!("%telnet_user", fnode["redborder"]["telnet_user"].nil? ? "" : fnode["redborder"]["telnet_user"])
+                            monit[k].to_s.gsub!("%telnet_password", fnode["redborder"]["telnet_password"].nil? ? "" : fnode["redborder"]["telnet_password"])
+
                           end
                           #"send" ; send_kafka ? "1" : "0"
                           #inserted[monit["name"]]=true
                         end
                       end
                     end
-
                 }
                 config["sensors"].push(sensor)
               end
