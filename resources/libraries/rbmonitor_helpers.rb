@@ -209,7 +209,6 @@ module Rbmonitor
       #####################################
       # SENSOR MONITORIZATION
       #####################################
-      # TODO
 
       # Remote sensors monitored or any managers
       flow_nodes = resource["flow_nodes"]
@@ -229,23 +228,28 @@ module Rbmonitor
                   "enrichment" => enrich(flow_nodes[findex]),
                   "monitors" =>
                     if !fnode.nil? and !fnode["redborder"].nil? and !fnode["redborder"]["monitors"].nil?
+                      send_kafka = false
                       fnode["redborder"]["monitors"].each do |monit|
                         if inserted[monit["name"]].nil? and (monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?(monit["name"]))
-                          send_kafka=false
                           fnode["redborder"]["monitors"].each do |monit2|
-                            send_kafka=true if (monit2["name"] == monit["name"] and monit2["kafka"].nil? or monit2["kafka"]=="1" or monit2["kafka"]==1 or monit2["kafka"]==true)
+                            send_kafka = true if (monit2["name"] == monit["name"] and monit2["kafka"].nil? or monit2["kafka"]=="1" or monit2["kafka"]==1 or monit2["kafka"]==true)
                           end
+                          send=[{"send" => send_kafka ? 1 : 0}]
                           keys = monit.keys.sort; keys.delete("name"); keys.delete("kafka"); keys.insert(0, "name")
+                          last_key = keys.length
+                          keys.insert(last_key, "send")
                           keys.each_with_index do |k, i|
                             ((i!=0) ? ", " : "" ) ; k
                             monit[k].to_s.gsub!("%sensor_ip", fnode["ipaddress"])
                             monit[k].to_s.gsub!("%snmp_community", (fnode["redborder"]["snmp_community"].nil? or fnode["redborder"]["snmp_community"]=="") ? "public" : fnode["redborder"]["snmp_community"].to_s)
                             monit[k].to_s.gsub!("%telnet_user", fnode["redborder"]["telnet_user"].nil? ? "" : fnode["redborder"]["telnet_user"])
                             monit[k].to_s.gsub!("%telnet_password", fnode["redborder"]["telnet_password"].nil? ? "" : fnode["redborder"]["telnet_password"])
-
+                            if k == "send"
+                              #send_kafka ? monit["send"] = "0" : monit["send"] = "1"
+                              #fnode["redborder"]["monitors"].concat(send)
+                              fnode.default["redborder"]["monitors"].inserted(last_key, send)
+                            end
                           end
-                          #"send" ; send_kafka ? "1" : "0"
-                          #inserted[monit["name"]]=true
                         end
                       end
                     end
@@ -261,6 +265,7 @@ module Rbmonitor
 
       # DEVICES SENSORS
       device_nodes = resource["device_nodes"]
+      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")
       begin
         if !device_nodes.nil? and manager_list.length>0
           device_nodes.each_with_index do |dnode, dindex|
@@ -274,7 +279,7 @@ module Rbmonitor
                   "community" => (dnode["redborder"]["snmp_community"].nil? or dnode["redborder"]["snmp_community"]=="") ? "public" : dnode["redborder"]["snmp_community"].to_s,
                   "snmp_version" => (dnode["redborder"]["snmp_version"].nil? or dnode["redborder"]["snmp_version"]=="") ? "2c" : dnode["redborder"]["snmp_version"].to_s,
                   "enrichment" => enrich(device_nodes[dindex]),
-                  "monitors" => [
+                  "monitors" =>
                     if !dnode.nil? and !dnode["redborder"].nil? and !dnode["redborder"]["monitors"].nil?
                       dnode["redborder"]["monitors"].each do |monit|
                         if inserted[monit["name"]].nil? and (monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?(monit["name"]) or monit["name"].start_with? "custom_")
@@ -282,7 +287,7 @@ module Rbmonitor
                           dnode["redborder"]["monitors"].each do |monit2|
                             send_kafka = "true" if (monit2["name"] == monit["name"] and (monit2["send"].nil? or monit2["send"]==1 or monit2["send"]==true))
                           end
-                          get_sensor = "rb_get_sensor"
+                          #get_sensor = "rb_get_sensor"
                           keys = monit.keys.sort; keys.delete("name"); keys.delete("send"); keys.insert(0, "name")
                           keys.each_with_index do |k, i|
                             ((i!=0) ? ", " : "") ; k
@@ -296,7 +301,6 @@ module Rbmonitor
                         end
                       end
                     end
-                  ]
                 }
                 config["sensors"].push(sensor)
               end
@@ -306,7 +310,6 @@ module Rbmonitor
       rescue
         puts "Can't access to device sensor, skipping..."
       end
-
       return config
     end
   end

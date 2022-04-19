@@ -47,7 +47,6 @@ action :add do
     resource["device_nodes"] = device_nodes
     resource["flow_nodes"] = flow_nodes
 
-    
     template "#{config_dir}/config.json" do
       source "config.json.erb"
       owner "root"
