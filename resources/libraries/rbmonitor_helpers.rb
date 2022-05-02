@@ -80,8 +80,7 @@ module Rbmonitor
 
       #SENSORS SECTION
       config["sensors"] = []
-      config["monit_aux"] = []
-
+      
       #Ping and packet statistics between managers
       hostname = resource["hostname"]
       hostip = resource["hostip"]
