@@ -13,3 +13,5 @@ attribute :community, :kind_of => String, :default => "redborder"
 attribute :log_level, :kind_of => Integer, :default => 3
 attribute :device_nodes, :kind_of => Array, :default => []
 attribute :flow_nodes, :kind_of => Array, :default => []
+attribute :managers, :kind_of => Array, :default => []
+attribute :cluster, :kind_of => Hash, :default => []

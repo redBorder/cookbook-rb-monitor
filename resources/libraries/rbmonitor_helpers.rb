@@ -156,11 +156,13 @@ module Rbmonitor
       #########################
       # BETWEEN MANAGERS (Latency, pkts_lost and pkts_percent_rcv)
       #########################
+      managers = resource["managers"]
       begin
         #Calculate next manager to calculate metrics with it
-        manager_list = node["redborder"]["managers_list"]
-        if manager_list.length > 1
-          next_manager = manager_list.at(manager_list.index(hostname)+1 % manager_list.length)
+        #manager_list = node["redborder"]["managers_list"]
+
+        if managers.length > 1
+        next_manager = managers.at(managers.index(hostname)+1 % managers.length)
           next_manager_ip = node["redborder"]["cluster_info"][next_manager]["ip"]
           sensor = {
             "timeout" => 5,
@@ -249,13 +251,17 @@ module Rbmonitor
       # SENSOR MONITORIZATION
       #####################################
 
+        cluster = resource["cluster"]
+
+        managers_index = cluster.map{|x| x.name}.index(node.name)
+
       # Remote sensors monitored or any managers
       flow_nodes = resource["flow_nodes"]
       begin
         if !flow_nodes.nil? and manager_list.length>0
           flow_nodes.each_with_index do |fnode, findex|
             if !fnode["redborder"]["monitors"].nil? and !fnode["ipaddress"].nil? and fnode["redborder"]["parent_id"].nil?
-              if (findex%manager_list.length != manager_list.index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size>0)
+              if (findex%managers.length != managers_index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size>0)
                 sensor = {
                   "timeout" => 2000,
                   "sensor_name" => fnode["rbname"].nil? ? fnode.name : fnode["rbname"],
@@ -280,7 +286,7 @@ module Rbmonitor
         if !device_nodes.nil? and manager_list.length>0
           device_nodes.each_with_index do |dnode, dindex|
             if !dnode["redborder"]["monitors"].nil? and !dnode["ipaddress"].nil? and dnode["redborder"]["parent_id"].nil?
-              if (dindex%manager_list.length != manager_list.index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length>0)
+              if (dindex%managers.length != managers_index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length>0)
                 sensor = {
                   "timeout" => 2000,
                   "sensor_name" => dnode["rbname"].nil? ? dnode.name : dnode["rbname"],

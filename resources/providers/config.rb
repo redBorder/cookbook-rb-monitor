@@ -14,6 +14,8 @@ action :add do
     user = "redborder-monitor"
     device_nodes = new_resource.device_nodes
     flow_nodes = new_resource.flow_nodes
+    managers = new_resource.managers
+    cluster = new_resource.cluster
 
     yum_package "redborder-monitor" do
       action :upgrade
@@ -46,6 +48,8 @@ action :add do
     resource["log_level"] = log_level
     resource["device_nodes"] = device_nodes
     resource["flow_nodes"] = flow_nodes
+    resource["managers"] = managers
+    resource["cluster"] = cluster
 
     template "#{config_dir}/config.json" do
       source "config.json.erb"
