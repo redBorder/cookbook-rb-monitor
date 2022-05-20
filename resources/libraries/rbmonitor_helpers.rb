@@ -162,8 +162,8 @@ module Rbmonitor
         #manager_list = node["redborder"]["managers_list"]
 
         if managers.length > 1
-        next_manager = managers.at(managers.index(hostname)+1 % managers.length)
-          next_manager_ip = node["redborder"]["cluster_info"][next_manager]["ip"]
+        next_manager = managers.at((managers.index(hostname)+1) % managers.length)
+        next_manager_ip = node["redborder"]["cluster_info"][next_manager]["ip"]
           sensor = {
             "timeout" => 5,
             "sensor_name" => next_manager,
@@ -251,17 +251,18 @@ module Rbmonitor
       # SENSOR MONITORIZATION
       #####################################
 
-        cluster = resource["cluster"]
-
-        managers_index = cluster.map{|x| x.name}.index(node.name)
+      #cluster = resource["cluster"]
+      #managers_index = cluster.map{|x| x.name}.index(node.name)
 
       # Remote sensors monitored or any managers
       flow_nodes = resource["flow_nodes"]
+      manager_list = node["redborder"]["managers_list"]
       begin
         if !flow_nodes.nil? and manager_list.length>0
+          manager_index = manager_list.find_index(hostname)
           flow_nodes.each_with_index do |fnode, findex|
             if !fnode["redborder"]["monitors"].nil? and !fnode["ipaddress"].nil? and fnode["redborder"]["parent_id"].nil?
-              if (findex%managers.length != managers_index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size>0)
+              if findex % manager_list.length == manager_index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size > 0
                 sensor = {
                   "timeout" => 2000,
                   "sensor_name" => fnode["rbname"].nil? ? fnode.name : fnode["rbname"],
@@ -282,11 +283,13 @@ module Rbmonitor
 
       # DEVICES SENSORS
       device_nodes = resource["device_nodes"]
+      manager_list = node["redborder"]["managers_list"]
       begin
         if !device_nodes.nil? and manager_list.length>0
+          manager_index = manager_list.find_index(hostname)
           device_nodes.each_with_index do |dnode, dindex|
             if !dnode["redborder"]["monitors"].nil? and !dnode["ipaddress"].nil? and dnode["redborder"]["parent_id"].nil?
-              if (dindex%managers.length != managers_index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length>0)
+              if dindex % manager_list.length == manager_index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length > 0
                 sensor = {
                   "timeout" => 2000,
                   "sensor_name" => dnode["rbname"].nil? ? dnode.name : dnode["rbname"],
