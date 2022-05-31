@@ -1,6 +1,6 @@
 module Rbmonitor
   module Helpers
-
+    inserted = {}
     def enrich(resource_node)
       node={}
       node[:name] = resource_node["rbname"] if resource_node["rbname"]
@@ -16,8 +16,8 @@ module Rbmonitor
       return node
     end
 
-    def monitors(resource_node)
-      inserted = {}
+    def monitors(resource_node,inserted)
+
       monit_array = []
       monit_aux = {}
       monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")
@@ -28,10 +28,10 @@ module Rbmonitor
           if inserted[monit_aux["name"]].nil? and (monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?(monit_aux["name"]))
             resource_node["redborder"]["monitors"].each do |monit2|
               monit2_aux = monit2.to_hash
-              send_kafka = true if (monit2_aux["name"] == monit_aux["name"] and monit2_aux["kafka"].nil? or monit2_aux["kafka"]=="1" or monit2_aux["kafka"]==1 or monit2_aux["kafka"]==true)
+              send_kafka = true if (monit2_aux["name"] == monit_aux["name"] and (monit2_aux["send"].nil? or monit2_aux["send"]=="1" or monit2_aux["send"]==1 or monit2_aux["send"]==true))
             end
             send = send_kafka ? 1 : 0
-            keys = monit_aux.keys.sort; keys.delete("name"); keys.delete("kafka"); keys.insert(0, "name")
+            keys = monit_aux.keys.sort; keys.delete("name"); keys.delete("send"); keys.insert(0, "name")
             last_key = keys.length
             keys.insert(last_key, "send")
             keys.each_with_index do |k, i|
@@ -41,6 +41,7 @@ module Rbmonitor
               monit_aux[k].to_s.gsub!("%telnet_user", resource_node["redborder"]["telnet_user"].nil? ? "" : resource_node["redborder"]["telnet_user"])
               monit_aux[k].to_s.gsub!("%telnet_password", resource_node["redborder"]["telnet_password"].nil? ? "" : resource_node["redborder"]["telnet_password"])
               monit_aux["send"] = send
+              puts monit_aux if k.include? "cpu"
 =begin
               if resource_node.to_s.include?"rbdevice"
                 #monit[k].to_s.gsub(rb_get_sensor.sh, (dnode["redborder"]["protocol"] == "IPMI" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? rb_get_sensor.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]} : rb_get_sensor.sh").gsub(rb_get_redfish.sh, (dnode["redborder"]["protocol"] == "Redfish" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? rb_get_redfish.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]}" : "rb_get_redfish.sh" )
@@ -49,7 +50,7 @@ module Rbmonitor
             end
             inserted[monit_aux["name"]]=true
           end
-          monit_array.push(monit_aux)
+            monit_array.push(monit_aux)
         end
       end
       return monit_array
@@ -57,6 +58,7 @@ module Rbmonitor
 
     def config_hash(resource)
       config = {}
+      inserted = {}
 
       #CONF SECTION
       kafka_topic = resource["kafka_topic"]
@@ -156,10 +158,9 @@ module Rbmonitor
       #########################
       # BETWEEN MANAGERS (Latency, pkts_lost and pkts_percent_rcv)
       #########################
-      managers = resource["managers"]
       begin
         #Calculate next manager to calculate metrics with it
-        #manager_list = node["redborder"]["managers_list"]
+        managers = node["redborder"]["managers_list"]
 
         if managers.length > 1
         next_manager = managers.at((managers.index(hostname)+1) % managers.length)
@@ -171,10 +172,10 @@ module Rbmonitor
             "community" => community,
             "snmp_version" => "2c",
             "monitors" => [
-              { "name" => "latency", "unit" => "ms",
-                "system" => "nice -n 19 fping -q -s #{next_manager}.node 2>&1| grep 'avg round trip time'|awk '{print $1}'" },
-              { "name" => "pkts_lost", "unit" => "%",
-                "system" => "nice -n 19 fping -p 1 -c 10 #{next_manager}.node 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'" },
+              { "name" => "latency",
+                "system" => "nice -n 19 fping -q -s #{next_manager}.node 2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms" },
+              { "name" => "pkts_lost",
+                "system" => "nice -n 19 fping -p 1 -c 10 #{next_manager}.node 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%" },
               { "name" => "pkts_percent_rcv", "op" => "100 - pkts_lost", "unit" => "%" }
             ]
           }
@@ -270,7 +271,7 @@ module Rbmonitor
                   "community" => (fnode["redborder"]["snmp_community"].nil? or fnode["redborder"]["snmp_community"]=="") ? "public" : fnode["redborder"]["snmp_community"].to_s,
                   "snmp_version" => (fnode["redborder"]["snmp_version"].nil? or fnode["redborder"]["snmp_version"]=="") ? "2c" : fnode["redborder"]["snmp_version"].to_s,
                   "enrichment" => enrich(flow_nodes[findex]),
-                  "monitors" => monitors(flow_nodes[findex])
+                  "monitors" => monitors(flow_nodes[findex],inserted)
                 }
                 config["sensors"].push(sensor)
               end
@@ -297,7 +298,7 @@ module Rbmonitor
                   "community" => (dnode["redborder"]["snmp_community"].nil? or dnode["redborder"]["snmp_community"]=="") ? "public" : dnode["redborder"]["snmp_community"].to_s,
                   "snmp_version" => (dnode["redborder"]["snmp_version"].nil? or dnode["redborder"]["snmp_version"]=="") ? "2c" : dnode["redborder"]["snmp_version"].to_s,
                   "enrichment" => enrich(device_nodes[dindex]),
-                  "monitors" => monitors(device_nodes[dindex])
+                  "monitors" => monitors(device_nodes[dindex],inserted)
                 }
                 config["sensors"].push(sensor)
               end
