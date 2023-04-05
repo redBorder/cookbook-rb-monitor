@@ -20,6 +20,7 @@ module Rbmonitor
 
       monit_array = []
       monit_aux = {}
+      inserted={}
       monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")
       if !resource_node.nil? and !resource_node["redborder"].nil? and !resource_node["redborder"]["monitors"].nil?
         send_kafka = false
@@ -41,7 +42,7 @@ module Rbmonitor
               monit_aux[k].to_s.gsub!("%telnet_user", resource_node["redborder"]["telnet_user"].nil? ? "" : resource_node["redborder"]["telnet_user"])
               monit_aux[k].to_s.gsub!("%telnet_password", resource_node["redborder"]["telnet_password"].nil? ? "" : resource_node["redborder"]["telnet_password"])
               monit_aux["send"] = send
-              puts monit_aux if k.include? "cpu"
+              #puts monit_aux if k.include? "cpu"
 =begin
               if resource_node.to_s.include?"rbdevice"
                 #monit[k].to_s.gsub(rb_get_sensor.sh, (dnode["redborder"]["protocol"] == "IPMI" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? rb_get_sensor.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]} : rb_get_sensor.sh").gsub(rb_get_redfish.sh, (dnode["redborder"]["protocol"] == "Redfish" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? rb_get_redfish.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]}" : "rb_get_redfish.sh" )
