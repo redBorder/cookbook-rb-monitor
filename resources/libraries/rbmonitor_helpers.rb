@@ -119,21 +119,24 @@ module Rbmonitor
       ]
 
       #Calculate used memory per service
-      #TODO: script dependencies
       memory_monitors = []
-      #begin
-      #  enabled_services = node["redborder"]["services"].map { |service|
-      #    service.keys[0] if service.values[0]
-      #  }
-      #  enabled_services.delete_if { |service| service == nil }
-      #  enabled_services.each do |service|
-      #    memory_monitors.push({ "name" => "memory_total_#{service}", "unit" => "kB", "integer" => 1, "send" => 0,
-      #                            "system" => "sudo /opt/rb/bin/rb_mem.sh -f /opt/rb/var/sv/<%= x%>/supervise/pid 2>/dev/null" } )
-      #    memory_monitors.push({ "name" => "memory_#{service}", "op" => "100*(memory_total_#{service})/memory_total", "unit" => "%"} )
-      #  end
-      #rescue
-      #  puts "Can't access to redborder service list, skipping memory services monitorization"
-      #end
+      begin
+        enabled_services = node["redborder"]["services"].map { |service|
+          service[0] if service[1]
+        }
+        enabled_services.delete_if { |service| service == nil }
+        enabled_services.each do |service|
+          service_list = %w[ druid-broker druid-coordinator druid-historical druid-middleManager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp postgresql webui zookeeper f2k ]
+          if service_list.include? service
+            serv = service.gsub("-", "_")
+            memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0,
+                                   "system" => "sudo /usr/lib/redborder/bin/rb_mem.sh -n #{service} 2>/dev/null" } )
+            memory_monitors.push({ "name" => "memory_#{serv}", "op" => "100*(memory_total_#{serv})/memory_total", "unit" => "%"} )
+          end
+        end
+      rescue
+        puts "Can't access to redborder service list, skipping memory services monitorization"
+      end
 
       #Create monitors array
       manager_monitors = []
