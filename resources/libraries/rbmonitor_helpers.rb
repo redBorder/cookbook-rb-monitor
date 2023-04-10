@@ -126,7 +126,7 @@ module Rbmonitor
         }
         enabled_services.delete_if { |service| service == nil }
         enabled_services.each do |service|
-          service_list = %w[ druid-broker druid-coordinator druid-historical druid-middleManager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp postgresql webui zookeeper f2k ]
+          service_list = %w[ druid-broker druid-coordinator druid-historical druid-middleManager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k ]
           if service_list.include? service
             serv = service.gsub("-", "_")
             memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0,
