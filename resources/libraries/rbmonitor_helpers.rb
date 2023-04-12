@@ -259,24 +259,24 @@ module Rbmonitor
       #end
 
       # Druid coordinator (TODO: resolve script dependencies)
-      #begin
-      #  if node["redborder"]["services"]["druid-coordinator"]
-      #    sensor = {
-      #      "timeout" => 5,
-      #      "sensor_name" => "druid-coordinator",
-      #      "sensor_ip" => hostip,
-      #      "community" => community,
-      #      "snmp_version" => "2c",
-      #      "monitors" => [
-      #        { "name" => "hot_tier_capacity", "system" => "/opt/rb/bin/rb_get_tiers.sh -l -t hot 2>/dev/null", "unit" => "%", "integer" => 1 },
-      #        { "name" => "default_tier_capacity", "system" => "/opt/rb/bin/rb_get_tiers.sh -l -t _default_tier 2>/dev/null", "unit" => "%", "integer" => 1 }
-      #      ]
-      #    }
-      # config["sensors"].push(sensor)
-      #  end
-      #rescue
-      #  puts "Error accessing to redborder service list, skipping druid-overlord monitorization"
-      #end
+      begin
+        if node["redborder"]["services"]["druid-coordinator"]
+          sensor = {
+            "timeout" => 5,
+            "sensor_name" => "druid-coordinator",
+            "sensor_ip" => hostip,
+            "community" => community,
+            "snmp_version" => "2c",
+            "monitors" => [
+              { "name" => "hot_tier_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tiers.sh -t hot 2>/dev/null", "unit" => "%", "integer" => 1 },
+              { "name" => "default_tier_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tiers.sh -t _default_tier 2>/dev/null", "unit" => "%", "integer" => 1 }
+            ]
+          }
+       config["sensors"].push(sensor)
+        end
+      rescue
+        puts "Error accessing to redborder service list, skipping druid-coordinator monitorization"
+      end
 
       #####################################
       # SENSOR MONITORIZATION
