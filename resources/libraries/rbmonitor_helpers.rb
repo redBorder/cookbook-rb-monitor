@@ -214,9 +214,10 @@ module Rbmonitor
       #end
 
       # Logstash (TODO: resolve script dependencies)
-        begin
-          if node["redborder"]["cluster_info"][hostname]["services"].include?("logstash")
-            sensor= {
+      pipelines = ["bulkstats-pipeline", "location-pipeline", "meraki-pipeline", "mobility-pipeline", "monitor-pipeline", "netflow-pipeline", "nmsp-pipeline", "radius-pipeline", "rbwindow-pipeline", "redfish-pipeline", "scanner-pipeline", "sflow-pipeline", "social-pipeline", "vault-pipeline"]
+      begin
+        if node["redborder"]["services"]["logstash"] == true
+          sensor= {
             "timeout"=>5,
             "sensor_name"=> hostname,
             "sensor_ip"=> hostip,
@@ -230,31 +231,30 @@ module Rbmonitor
                 {"name"=> "logstash_load_15", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -n 2>/dev/null", "unit"=> "%"},
                 {"name"=> "logstash_heap", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -u 2>/dev/null", "unit"=> "%"},
                 {"name"=> "logstash_events", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -e 2>/dev/null", "unit"=> "event", "integer"=> 1},
+                {"name"=> "logstash_memory", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -v 2>/dev/null", "unit"=> "bytes", "integer"=> 1}
               ]
-            },
-              %w["bulkstats-pipeline", "location-pipeline", "meraki-pipeline", "mobility-pipeline", "monitor-pipeline", "netflow-pipeline", "nmsp-pipeline", "radius-pipeline", "rbwindow-pipeline", "redfish-pipeline", "scanner-pipeline", "sflow-pipeline", "social-pipeline", "vault-pipeline" ].each do |pipeline|
-                sensor_pipeline= {
-                  "timeout"=>5,
-                  "sensor_name"=> hostname,
-                  "sensor_ip"=> hostip,
-                  "community" => community,
-                  "snmp_version"=> "2c",
-                  "monitors"=>
-                    [
-                    {"name"=> "logstash_events_per_pipeline", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -e #{pipeline} 2>/dev/null", "unit"=> "event", "integer"=> 1},
-                  {"name"=> "logstash_events_count_queue", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -w #{pipeline} 2>/dev/null", "unit"=> "event", "integer"=> 1},
-                  {"name"=> "logstash_events_count_queue_bytes", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -z #{pipeline} 2>/dev/null", "unit"=> "bytes", "integer"=> 1}
+          }
+          config["sensors"].push(sensor)
+          pipelines.each do |pipeline|
+            sensor_pipeline= {
+              "timeout"=>5,
+              "sensor_name"=> "#{hostname}-#{pipeline}",
+              "sensor_ip"=> hostip,
+              "community" => community,
+              "snmp_version"=> "2c",
+              "monitors"=>
+                [
+                  {"name"=> "logstash_events_per_pipeline", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -e "+pipeline+" 2>/dev/null", "unit"=> "event", "integer"=> 1},
+                  {"name"=> "logstash_events_count_queue", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -w "+pipeline+" 2>/dev/null", "unit"=> "event", "integer"=> 1},
+                  {"name"=> "logstash_events_count_queue_bytes", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -z "+pipeline+" 2>/dev/null", "unit"=> "bytes", "integer"=> 1}
                 ]
-                }
-                config["sensors"].push(sensor_pipeline)
-                end
-              end
-             config["sensors"].push(sensor)
-          #config["sensors"].push(sensor_pipeline)
+            }
+            config["sensors"].push(sensor_pipeline)
           end
-          rescue
-              puts "Error accessing to redborder service list, skipping logstash monitorization"
         end
+      rescue
+        puts "Error accessing to redborder service list, skipping logstash monitorization"
+      end
 
       # Druid overlord (TODO: resolve script dependencies)
       #begin
@@ -278,7 +278,7 @@ module Rbmonitor
 
       # Druid coordinator (TODO: resolve script dependencies)
       begin
-        if node["redborder"]["services"]["druid-coordinator"]
+        if node["redborder"]["services"]["druid-coordinator"] == true
           sensor = {
             "timeout" => 5,
             "sensor_name" => "druid-coordinator",
