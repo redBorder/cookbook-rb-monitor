@@ -213,6 +213,31 @@ module Rbmonitor
       #  puts "Error accessing to redborder service list, skipping hadoop-resourcemanager monitorization"
       #end
 
+      # Logstash (TODO: resolve script dependencies)
+        begin
+          if node["redborder"]["cluster_info"][hostname]["services"].include?("logstash")
+            sensor= {
+            "timeout"=>5,
+            "sensor_name"=> "<%= node.name %>",
+            "sensor_ip"=> "<%= @ipsync %>",
+            "community" => "redBorder",
+            "snmp_version"=> "2c",
+            "monitors"=>
+              [
+                {"name"=> "logstash_cpu", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -c 2>/dev/null", "unit"=> "%"},
+                {"name"=> "logstash_load_1", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -l 2>/dev/null", "unit"=> "%"},
+                {"name"=> "logstash_load_5", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -m 2>/dev/null", "unit"=> "%"},
+                {"name"=> "logstash_load_15", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -n 2>/dev/null", "unit"=> "%"},
+                {"name"=> "logstash_heap", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -u 2>/dev/null", "unit"=> "%"},
+                {"name"=> "logstash_events", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -e 2>/dev/null", "unit"=> "event", "integer"=> 1},
+              ]
+            }
+             config["sensors"].push(sensor)
+          end
+          rescue
+              puts "Error accessing to redborder service list, skipping logstash monitorization"
+          end
+
       # Druid overlord (TODO: resolve script dependencies)
       #begin
       #  if node["redborder"]["services"]["druid-overlord"]
@@ -238,7 +263,7 @@ module Rbmonitor
       #  if node["redborder"]["services"]["druid-coordinator"]
       #    sensor = {
       #      "timeout" => 5,
-      #      "sensor_name" => "druid-overlord",
+      #      "sensor_name" => "druid-coordinator",
       #      "sensor_ip" => hostip,
       #      "community" => community,
       #      "snmp_version" => "2c",
@@ -247,6 +272,7 @@ module Rbmonitor
       #        { "name" => "default_tier_capacity", "system" => "/opt/rb/bin/rb_get_tiers.sh -l -t _default_tier 2>/dev/null", "unit" => "%", "integer" => 1 }
       #      ]
       #    }
+      # config["sensors"].push(sensor)
       #  end
       #rescue
       #  puts "Error accessing to redborder service list, skipping druid-overlord monitorization"
