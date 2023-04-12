@@ -218,9 +218,9 @@ module Rbmonitor
           if node["redborder"]["cluster_info"][hostname]["services"].include?("logstash")
             sensor= {
             "timeout"=>5,
-            "sensor_name"=> "<%= node.name %>",
-            "sensor_ip"=> "<%= @ipsync %>",
-            "community" => "redBorder",
+            "sensor_name"=> hostname,
+            "sensor_ip"=> hostip,
+            "community" => community,
             "snmp_version"=> "2c",
             "monitors"=>
               [
