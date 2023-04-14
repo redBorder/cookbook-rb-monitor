@@ -41,13 +41,13 @@ module Rbmonitor
               monit_aux[k].to_s.gsub!("%snmp_community", (resource_node["redborder"]["snmp_community"].nil? or resource_node["redborder"]["snmp_community"]=="") ? "public" : resource_node["redborder"]["snmp_community"].to_s)
               monit_aux[k].to_s.gsub!("%telnet_user", resource_node["redborder"]["telnet_user"].nil? ? "" : resource_node["redborder"]["telnet_user"])
               monit_aux[k].to_s.gsub!("%telnet_password", resource_node["redborder"]["telnet_password"].nil? ? "" : resource_node["redborder"]["telnet_password"])
-              monit_aux["send"] = send
-
-=begin
-              if resource_node.to_s.include?"rbdevice"
-                monit[k].to_s.gsub(`/usr/lib/redborder/bin/rb_get_sensor.sh`, (dnode["redborder"]["protocol"] == "IPMI" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? `/usr/lib/redborder/bin/rb_get_sensor.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]}` : /usr/lib/redborder/bin/rb_get_sensor.sh).gsub(/usr/lib/redborder/bin/rb_get_redfish.sh, (dnode["redborder"]["protocol"] == "Redfish" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? /usr/lib/redborder/bin/rb_get_redfish.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]}" : "/usr/lib/redborder/bin/rb_get_redfish.sh" )
+              if resource_node == "device_nodes"
+                dnode = resource_node["device_nodes"]
+                get_sensor = `/usr/lib/redborder/bin/rb_get_sensor.sh`
+                get_redfish = `/usr/lib/redborder/bin/rb_get_redfish.sh`
+                monit_aux[k].to_s.gsub(get_sensor, (dnode["redborder"]["protocol"] == "IPMI" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? "#{get_sensor} -i #{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]}" : "#{get_sensor}" ).gsub("#{get_redfish}", (dnode["redborder"]["protocol"] == "Redfish" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? "#{get_redfish} -i #{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]}" : "#{get_redfish}" )
               end
-=end
+              monit_aux["send"] = send
             end
             inserted[monit_aux["name"]]=true
           end
