@@ -118,6 +118,17 @@ module Rbmonitor
           "system" => "snmptable -v 2c -c #{community} #{hostip} diskIOTable|grep ' dm-0 ' | awk '{print $7}'" }
       ]
 
+      # Kafka
+      kafka_monitors = []
+      begin
+        if (node["redborder"]["services"]["kafka"] == true and  File.exist?"/tmp/kafka")
+          kafka_monitors.push({"name"=> "kafka_disk_cached_pages", "system"=> "find /tmp/kafka/ \\( -size +1 -a -! -type d \\) -exec /opt/rb/bin/pcstat -terse {} \\+ | awk -F',' '{s+=$5;c+=$6}END{print c/s*100}'", "unit"=> "%"},)
+          kafka_monitors.push({"name"=> "cache_hits", "system"=> "sudo /usr/lib/redborder/bin/cachestat.sh | awk '{$1=$1};1'", "unit"=> "%"})
+        end
+      rescue
+        puts "Error, can't access to Kafka, skipping kafka monitors"
+      end
+
       #Calculate used memory per service
       memory_monitors = []
       begin
@@ -141,6 +152,7 @@ module Rbmonitor
       #Create monitors array
       manager_monitors = []
       manager_monitors.concat(snmp_monitors)
+      manager_monitors.concat(kafka_monitors)
       manager_monitors.concat(memory_monitors)
 
       # TODO: script dependencies

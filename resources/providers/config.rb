@@ -23,7 +23,7 @@ action :add do
 
 
     #Installation of required utilities
-    utilities = [ "atop", "bc", "net-snmp-utils", "fping" ]
+    utilities = [ "atop", "bc", "net-snmp-utils", "fping", "pcstat" ]
     utilities.each { |utility|
       yum_package utility do
         action :upgrade
