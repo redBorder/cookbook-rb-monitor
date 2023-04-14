@@ -45,7 +45,7 @@ module Rbmonitor
 
 =begin
               if resource_node.to_s.include?"rbdevice"
-                #monit[k].to_s.gsub(rb_get_sensor.sh, (dnode["redborder"]["protocol"] == "IPMI" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? rb_get_sensor.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]} : rb_get_sensor.sh").gsub(rb_get_redfish.sh, (dnode["redborder"]["protocol"] == "Redfish" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? rb_get_redfish.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]}" : "rb_get_redfish.sh" )
+                monit[k].to_s.gsub(`/usr/lib/redborder/bin/rb_get_sensor.sh`, (dnode["redborder"]["protocol"] == "IPMI" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? `/usr/lib/redborder/bin/rb_get_sensor.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]}` : /usr/lib/redborder/bin/rb_get_sensor.sh).gsub(/usr/lib/redborder/bin/rb_get_redfish.sh, (dnode["redborder"]["protocol"] == "Redfish" and !dnode["redborder"]["rest_api_user"].nil? and !dnode["redborder"]["rest_api_password"].nil?) ? /usr/lib/redborder/bin/rb_get_redfish.sh -i "#{dnode["redborder"]["ipaddress"]} -u #{dnode["redborder"]["rest_api_user"]} -p #{dnode["redborder"]["rest_api_password"]}" : "/usr/lib/redborder/bin/rb_get_redfish.sh" )
               end
 =end
             end
@@ -156,9 +156,9 @@ module Rbmonitor
       manager_monitors.concat(memory_monitors)
 
       # TODO: script dependencies
-      #if node["redborder"]["services"]["druid-middlemanager"]
-      #  manager_monitors.push({ "name" => "running_tasks", "system" => "/opt/rb/bin/rb_get_tasks.sh -u -n 2>/dev/null", "unit" => "tasks", "integer" => 1})
-      #end
+      if node["redborder"]["services"]["druid-middlemanager"] == true
+        manager_monitors.push({ "name" => "running_tasks", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -u -n 2>/dev/null", "unit" => "tasks", "integer" => 1})
+      end
 
       manager_sensor = {
         "timeout" => 5,
@@ -269,24 +269,25 @@ module Rbmonitor
       end
 
       # Druid overlord (TODO: resolve script dependencies)
-      #begin
-      #  if node["redborder"]["services"]["druid-overlord"]
-      #    sensor = {
-      #      "timeout" => 5,
-      #      "sensor_name" => "druid-overlord",
-      #      "sensor_ip" => hostip,
-      #      "community" => community,
-      #      "snmp_version" => "2c",
-      #      "monitors" => [
-      #        { "name" => "pending_tasks", "system" => "/opt/rb/bin/rb_get_tasks.sh -pn 2>/dev/null", "unit" => "tasks", "integer" => 1},
-      #        { "name" => "running_capacity", "system" => "/opt/rb/bin/rb_get_tasks.sh -on 2>/dev/null", "unit" => "tasks", "integer" => 1},
-      #        { "name" => "desired_capacity", "system" => "/opt/rb/bin/rb_get_tasks.sh -dn 2>/dev/null", "unit" => "task%", "integer" => 1}
-      #      ]
-      #    }
-      #  end
-      #rescue
-      #  puts "Error accessing to redborder service list, skipping druid-overlord monitorization"
-      #end
+      begin
+        if node["redborder"]["services"]["druid-overlord"] == true
+          sensor = {
+            "timeout" => 5,
+            "sensor_name" => "druid-overlord",
+            "sensor_ip" => hostip,
+            "community" => community,
+            "snmp_version" => "2c",
+            "monitors" => [
+              { "name" => "pending_tasks", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -pn 2>/dev/null", "unit" => "tasks", "integer" => 1},
+              { "name" => "running_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -on 2>/dev/null", "unit" => "tasks", "integer" => 1},
+              { "name" => "desired_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -dn 2>/dev/null", "unit" => "task%", "integer" => 1}
+            ]
+          }
+          config["sensors"].push(sensor)
+        end
+      rescue
+        puts "Error accessing to redborder service list, skipping druid-overlord monitorization"
+      end
 
       # Druid coordinator (TODO: resolve script dependencies)
       begin
