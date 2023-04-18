@@ -45,5 +45,7 @@ esac
 %doc
 
 %changelog
-* Tue Oct 18 2016 Alberto Rodríguez <arodriguez@redborder.com> - 1.0.0-1
+* Tue Apr 18 2023 Luis J. Blanco <ljblanco@redborder.com> - 0.0.2
+- clean templates with helpers
+* Tue Oct 18 2016 Alberto Rodríguez <arodriguez@redborder.com> - 0.0.1-1
 - first spec version
