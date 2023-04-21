@@ -36,7 +36,7 @@ module Rbmonitor
             last_key = keys.length
             keys.insert(last_key, "send")
             keys.each_with_index do |k, i|
-              ((i!=0) ? ", " : "" ) ; k
+              ((i!=0) ? ", " : "" ) ; k #TODO deprecated line
               monit_aux[k].to_s.gsub!("%sensor_ip", resource_node["ipaddress"])
               monit_aux[k].to_s.gsub!("%snmp_community", (resource_node["redborder"]["snmp_community"].nil? or resource_node["redborder"]["snmp_community"]=="") ? "public" : resource_node["redborder"]["snmp_community"].to_s)
               monit_aux[k].to_s.gsub!("%telnet_user", resource_node["redborder"]["telnet_user"].nil? ? "" : resource_node["redborder"]["telnet_user"])
@@ -151,7 +151,6 @@ module Rbmonitor
       manager_monitors.concat(kafka_monitors)
       manager_monitors.concat(memory_monitors)
 
-      # TODO: script dependencies
       if node["redborder"]["services"]["druid-middlemanager"] == true
         manager_monitors.push({ "name" => "running_tasks", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -u -n 2>/dev/null", "unit" => "tasks", "integer" => 1})
       end
@@ -221,7 +220,6 @@ module Rbmonitor
       #  puts "Error accessing to redborder service list, skipping hadoop-resourcemanager monitorization"
       #end
 
-      # Logstash (TODO: resolve script dependencies)
       pipelines = ["bulkstats-pipeline", "location-pipeline", "meraki-pipeline", "mobility-pipeline", "monitor-pipeline", "netflow-pipeline", "nmsp-pipeline", "radius-pipeline", "rbwindow-pipeline", "redfish-pipeline", "scanner-pipeline", "sflow-pipeline", "social-pipeline", "vault-pipeline"]
       begin
         if node["redborder"]["services"]["logstash"] == true
@@ -264,7 +262,6 @@ module Rbmonitor
         puts "Error accessing to redborder service list, skipping logstash monitorization"
       end
 
-      # Druid overlord (TODO: resolve script dependencies)
       begin
         if node["redborder"]["services"]["druid-overlord"] == true
           sensor = {
@@ -285,7 +282,6 @@ module Rbmonitor
         puts "Error accessing to redborder service list, skipping druid-overlord monitorization"
       end
 
-      # Druid coordinator (TODO: resolve script dependencies)
       begin
         if node["redborder"]["services"]["druid-coordinator"] == true
           sensor = {
