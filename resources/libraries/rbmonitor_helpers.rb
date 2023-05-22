@@ -315,7 +315,7 @@ module Rbmonitor
         if !flow_nodes.nil? and manager_list.length>0
           manager_index = manager_list.find_index(hostname)
           flow_nodes.each_with_index do |fnode, findex|
-            if !fnode["redborder"]["monitors"].nil? and !fnode["ipaddress"].nil? and fnode["redborder"]["parent_id"].nil?
+            if !fnode["redborder"]["monitors"].nil? and !fnode["ipaddress"].nil?
               if findex % manager_list.length == manager_index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size > 0
                 sensor = {
                   "timeout" => 2000,
@@ -342,7 +342,7 @@ module Rbmonitor
         if !device_nodes.nil? and manager_list.length>0
           manager_index = manager_list.find_index(hostname)
           device_nodes.each_with_index do |dnode, dindex|
-            if !dnode["redborder"]["monitors"].nil? and !dnode["ipaddress"].nil? and dnode["redborder"]["parent_id"].nil?
+            if !dnode["redborder"]["monitors"].nil? and !dnode["ipaddress"].nil?
               if dindex % manager_list.length == manager_index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length > 0
                 sensor = {
                   "timeout" => 2000,
