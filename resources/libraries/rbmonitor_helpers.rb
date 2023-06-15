@@ -56,24 +56,30 @@ module Rbmonitor
     def config_hash(resource)
       config = {}
       inserted = {}
+      mon = 0
+
+      #CONF SECTION
+      #kafka_topic = resource["kafka_topic"]
+      #log_level = resource["log_level"]
+      #config["conf"] = {
+      #  "debug" => log_level,
+      #  "stdout" => 1,
+      #  "syslog" => 0,
+      #  "threads" => [mon/8, 5].min,
+      #  "timeout" => 40,
+      #  "max_snmp_fails" => 2,
+      #  "max_kafka_fails" => 2,
+      #  "sleep_main_thread" => 50,
+      #  "sleep_worker_thread" => 5,
+      #  "kafka_broker" => "kafka.service",
+      #  "kafka_timeout" => 2,
+      #  "kafka_topic" => kafka_topic
+      #}
 
       #CONF SECTION
       kafka_topic = resource["kafka_topic"]
       log_level = resource["log_level"]
-      config["conf"] = {
-        "debug" => log_level,
-        "stdout" => 1,
-        "syslog" => 0,
-        "threads" => 1,
-        "timeout" => 40,
-        "max_snmp_fails" => 2,
-        "max_kafka_fails" => 2,
-        "sleep_main_thread" => 40,
-        "sleep_worker_thread" => 5,
-        "kafka_broker" => "kafka.service",
-        "kafka_timeout" => 2,
-        "kafka_topic" => kafka_topic
-      }
+      config["conf"] = {}
 
       #SENSORS SECTION
       config["sensors"] = []
@@ -113,13 +119,15 @@ module Rbmonitor
         { "name" => "disk_load",                                                      "unit" => "%",
           "system" => "snmptable -v 2c -c #{community} #{hostip} diskIOTable|grep ' dm-0 ' | awk '{print $7}'" }
       ]
+      mon = mon + 16
 
       # Kafka
       kafka_monitors = []
       begin
         if (node["redborder"]["services"]["kafka"] == true and  File.exist?"/tmp/kafka")
-          kafka_monitors.push({"name"=> "kafka_disk_cached_pages", "system"=> "find /tmp/kafka/ \\( -size +1 -a -! -type d \\) -exec /opt/rb/bin/pcstat -terse {} \\+ | awk -F',' '{s+=$5;c+=$6}END{print c/s*100}'", "unit"=> "%"},)
+          #kafka_monitors.push({"name"=> "kafka_disk_cached_pages", "system"=> "find /tmp/kafka/ \\( -size +1 -a -! -type d \\) -exec /opt/rb/bin/pcstat -terse {} \\+ | awk -F',' '{s+=$5;c+=$6}END{print c/s*100}'", "unit"=> "%"},)
           kafka_monitors.push({"name"=> "cache_hits", "system"=> "sudo /usr/lib/redborder/bin/cachestat.sh | awk '{$1=$1};1'", "unit"=> "%"})
+          mon = mon + 1
         end
       rescue
         puts "Error, can't access to Kafka, skipping kafka monitors"
@@ -139,6 +147,7 @@ module Rbmonitor
             memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0,
                                    "system" => "sudo /usr/lib/redborder/bin/rb_mem.sh -n #{service} 2>/dev/null" } )
             memory_monitors.push({ "name" => "memory_#{serv}", "op" => "100*(memory_total_#{serv})/memory_total", "unit" => "%"} )
+            mon = mon + 2
           end
         end
       rescue
@@ -153,6 +162,7 @@ module Rbmonitor
 
       if node["redborder"]["services"]["druid-middlemanager"] == true
         manager_monitors.push({ "name" => "running_tasks", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -u -n 2>/dev/null", "unit" => "tasks", "integer" => 1})
+        mon = mon + 1
       end
 
       manager_sensor = {
@@ -190,6 +200,7 @@ module Rbmonitor
               { "name" => "pkts_percent_rcv", "op" => "100 - pkts_lost", "unit" => "%" }
             ]
           }
+          mon = mon + 3
           config["sensors"].push(sensor)
         end
       rescue
@@ -240,6 +251,7 @@ module Rbmonitor
                 {"name"=> "logstash_memory", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -v 2>/dev/null", "unit"=> "bytes", "integer"=> 1}
               ]
           }
+          mon = mon + 7
           config["sensors"].push(sensor)
           pipelines.each do |pipeline|
             sensor_pipeline= {
@@ -255,6 +267,7 @@ module Rbmonitor
                   {"name"=> "logstash_events_count_queue_bytes", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -z "+pipeline+" 2>/dev/null", "unit"=> "bytes", "integer"=> 1}
                 ]
             }
+            mon = mon + 3
             config["sensors"].push(sensor_pipeline)
           end
         end
@@ -276,6 +289,7 @@ module Rbmonitor
               { "name" => "desired_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -dn 2>/dev/null", "unit" => "task%", "integer" => 1}
             ]
           }
+          mon = mon + 3
           config["sensors"].push(sensor)
         end
       rescue
@@ -295,6 +309,7 @@ module Rbmonitor
               { "name" => "default_tier_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tiers.sh -t _default_tier 2>/dev/null", "unit" => "%", "integer" => 1 }
             ]
           }
+          mon = mon + 2
        config["sensors"].push(sensor)
         end
       rescue
@@ -326,6 +341,7 @@ module Rbmonitor
                   "enrichment" => enrich(flow_nodes[findex]),
                   "monitors" => monitors(flow_nodes[findex],inserted)
                 }
+                mon = mon + fnode["redborder"]["monitors"].length
                 config["sensors"].push(sensor)
               end
             end
@@ -353,6 +369,7 @@ module Rbmonitor
                   "enrichment" => enrich(device_nodes[dindex]),
                   "monitors" => monitors(device_nodes[dindex],inserted)
                 }
+                mon = mon + dnode["redborder"]["monitors"].length
                 config["sensors"].push(sensor)
               end
             end
@@ -361,6 +378,23 @@ module Rbmonitor
       rescue
         puts "Can't access to device sensor, skipping..."
       end
+
+      conf = {
+        "debug" => log_level,
+        "stdout" => 1,
+        "syslog" => 0,
+        "threads" => [mon/8, 5].min,
+        "timeout" => 40,
+        "max_snmp_fails" => 2,
+        "max_kafka_fails" => 2,
+        "sleep_main_thread" => 50,
+        "sleep_worker_thread" => 5,
+        "kafka_broker" => "kafka.service",
+        "kafka_timeout" => 2,
+        "kafka_topic" => kafka_topic
+      }
+      config["conf"].push(conf)
+
       return config
     end
   end
