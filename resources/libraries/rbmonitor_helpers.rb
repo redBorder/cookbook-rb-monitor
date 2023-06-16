@@ -86,7 +86,7 @@ module Rbmonitor
           mon = mon + 1 
         end
         if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("cpu")
-          snmp_monitors.push({"name": "cpu_idle", "oid":"UCD-SNMP-MIB::ssCpuIdle.0", "unit":"%", "send": 0, "unit": "%"},)
+          snmp_monitors.push({"name": "cpu_idle", "oid":"UCD-SNMP-MIB::ssCpuIdle.0", "send": 0, "unit": "%"},)
           snmp_monitors.push({"name": "cpu", "op":"100-cpu_idle", "unit":"%"},)
           mon = mon + 2
         end
@@ -133,32 +133,31 @@ module Rbmonitor
         if File.exist?("/dev/mapper/vg_rbdata-lv_aggregated")
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_aggregated")
             snmp_monitors.push({"name": "disk_aggregated",  "oid": "UCD-SNMP-MIB::dskPercent.2", "unit": "%"},)
-          mon = mon + 1
+            mon = mon + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_aggregated_load")
             snmp_monitors.push({"name": "disk_aggregated_load", "system": "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-1 ' | awk '{print $7}'", "unit": "%"},)
-          mon = mon + 1
+            mon = mon + 1
           end
+        end
         if File.exist?("/dev/mapper/vg_rbdata-lv_raw")
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw")
             snmp_monitors.push({"name": "disk_raw", "oid": "UCD-SNMP-MIB::dskPercent.3", "unit": "%"},)
-          mon = mon + 1
+            mon = mon + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw_load")
             snmp_monitors.push({"name": "disk_raw_load", "system": "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-2 ' | awk '{print $7}'", "unit": "%"},)
-          mon = mon + 1
+            mon = mon + 1
           end 
-          end
         elsif File.exist?("/dev/mapper/vg_rbdata-lv_raw")
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw")
             snmp_monitors.push({"name": "disk_raw", "oid": "UCD-SNMP-MIB::dskPercent.2", "unit": "%"},)
-          mon = mon + 1
+            mon = mon + 1
           end
-
+        end
       rescue
         puts "Error, can't access to SNMP monitors, skipping snmp monitors"
-      end  
-
+      end
 
       # IPMI monitors
       monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitors_dg={}
@@ -172,20 +171,19 @@ module Rbmonitor
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("peripheral_temp")
             ipmi_monitor.push({"name": "peripheral_temp",  "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'Peripheral[ Temp]*'", "unit": "celsius", "integer": 1},)
-          mon = mon + 1
+            mon = mon + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("pch_temp")
             ipmi_monitor.push({"name": "pch_temp",         "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'PCH Temp'", "unit": "celsius", "integer": 1},)
-          mon = mon + 1
+            mon = mon + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("fan")
             ipmi_monitor.push({"name": "fan",              "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix":"_per_instance", "split":";", "split_op":"mean", "instance_prefix":"fan-", "integer": 1},)
-          mon = mon + 1
+            mon = mon + 1
           end
         end
-
-          rescue
-            puts "Error, can't access to IPMI, skipping ipmi monitors"
+      rescue
+        puts "Error, can't access to IPMI, skipping ipmi monitors"
       end
 
       # Kafka
@@ -251,8 +249,8 @@ module Rbmonitor
         managers = node["redborder"]["managers_list"]
 
         if managers.length > 1
-        next_manager = managers.at((managers.index(hostname)+1) % managers.length)
-        next_manager_ip = node["redborder"]["cluster_info"][next_manager]["ip"]
+          next_manager = managers.at((managers.index(hostname)+1) % managers.length)
+          next_manager_ip = node["redborder"]["cluster_info"][next_manager]["ip"]
           sensor = {
             "timeout" => 5,
             "sensor_name" => next_manager,
@@ -377,7 +375,7 @@ module Rbmonitor
             ]
           }
           mon = mon + 2
-       config["sensors"].push(sensor)
+          config["sensors"].push(sensor)
         end
       rescue
         puts "Error accessing to redborder service list, skipping druid-coordinator monitorization"
