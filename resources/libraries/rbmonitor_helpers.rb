@@ -129,9 +129,64 @@ module Rbmonitor
           snmp_monitors.push({"name": "disk_load", "system": "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-0 ' | awk '{print $7}'", "unit": "%"})
           mon = mon + 1
         end
+
+        if File.exist?("/dev/mapper/vg_rbdata-lv_aggregated")
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_aggregated")
+            snmp_monitors.push({"name": "disk_aggregated",  "oid": "UCD-SNMP-MIB::dskPercent.2", "unit": "%"},)
+          mon = mon + 1
+          end
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_aggregated_load")
+            snmp_monitors.push({"name": "disk_aggregated_load", "system": "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-1 ' | awk '{print $7}'", "unit": "%"},)
+          mon = mon + 1
+          end
+        if File.exist?("/dev/mapper/vg_rbdata-lv_raw")
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw")
+            snmp_monitors.push({"name": "disk_raw", "oid": "UCD-SNMP-MIB::dskPercent.3", "unit": "%"},)
+          mon = mon + 1
+          end
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw_load")
+            snmp_monitors.push({"name": "disk_raw_load", "system": "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-2 ' | awk '{print $7}'", "unit": "%"},)
+          mon = mon + 1
+          end 
+          end
+        elsif File.exist?("/dev/mapper/vg_rbdata-lv_raw")
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw")
+            snmp_monitors.push({"name": "disk_raw", "oid": "UCD-SNMP-MIB::dskPercent.2", "unit": "%"},)
+          mon = mon + 1
+          end
+
       rescue
-        puts "Error, can access to SNMP monitors, skipping snmp monitors"
+        puts "Error, can't access to SNMP monitors, skipping snmp monitors"
       end  
+
+
+      # IPMI monitors
+      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitors_dg={}
+      ipmi_monitor = []
+      
+      begin
+        if File.exist?("/dev/ipmi0") or File.exist?("/dev/ipmi/0") or File.exist?("/dev/ipmidev/0")
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("system_temp")
+            ipmi_monitor.push({"name": "system_temp",      "system": "sudo /opt/rb/bin/rb_get_sensor.sh -t Temperature -s 'System Temp'", "unit": "celsius", "integer": 1},)
+            mon = mon + 1
+          end
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("peripheral_temp")
+            ipmi_monitor.push({"name": "peripheral_temp",  "system": "sudo /opt/rb/bin/rb_get_sensor.sh -t Temperature -s 'Peripheral[ Temp]*'", "unit": "celsius", "integer": 1},)
+          mon = mon + 1
+          end
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("pch_temp")
+            ipmi_monitor.push({"name": "pch_temp",         "system": "sudo /opt/rb/bin/rb_get_sensor.sh -t Temperature -s 'PCH Temp'", "unit": "celsius", "integer": 1},)
+          mon = mon + 1
+          end
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("fan")
+            ipmi_monitor.push({"name": "fan",              "system": "sudo /opt/rb/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix":"_per_instance", "split":";", "split_op":"mean", "instance_prefix":"fan-", "integer": 1},)
+          mon = mon + 1
+          end
+        end
+
+          rescue
+            puts "Error, can't access to IPMI, skipping ipmi monitors"
+      end
 
       # Kafka
       kafka_monitors = []
