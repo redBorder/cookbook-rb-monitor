@@ -167,19 +167,19 @@ module Rbmonitor
       begin
         if File.exist?("/dev/ipmi0") or File.exist?("/dev/ipmi/0") or File.exist?("/dev/ipmidev/0")
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("system_temp")
-            ipmi_monitor.push({"name": "system_temp",      "system": "sudo /opt/rb/bin/rb_get_sensor.sh -t Temperature -s 'System Temp'", "unit": "celsius", "integer": 1},)
+            ipmi_monitor.push({"name": "system_temp",      "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'System Temp'", "unit": "celsius", "integer": 1},)
             mon = mon + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("peripheral_temp")
-            ipmi_monitor.push({"name": "peripheral_temp",  "system": "sudo /opt/rb/bin/rb_get_sensor.sh -t Temperature -s 'Peripheral[ Temp]*'", "unit": "celsius", "integer": 1},)
+            ipmi_monitor.push({"name": "peripheral_temp",  "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'Peripheral[ Temp]*'", "unit": "celsius", "integer": 1},)
           mon = mon + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("pch_temp")
-            ipmi_monitor.push({"name": "pch_temp",         "system": "sudo /opt/rb/bin/rb_get_sensor.sh -t Temperature -s 'PCH Temp'", "unit": "celsius", "integer": 1},)
+            ipmi_monitor.push({"name": "pch_temp",         "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'PCH Temp'", "unit": "celsius", "integer": 1},)
           mon = mon + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("fan")
-            ipmi_monitor.push({"name": "fan",              "system": "sudo /opt/rb/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix":"_per_instance", "split":";", "split_op":"mean", "instance_prefix":"fan-", "integer": 1},)
+            ipmi_monitor.push({"name": "fan",              "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix":"_per_instance", "split":";", "split_op":"mean", "instance_prefix":"fan-", "integer": 1},)
           mon = mon + 1
           end
         end
