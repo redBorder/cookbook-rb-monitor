@@ -21,7 +21,8 @@ module Rbmonitor
       monit_array = []
       monit_aux = {}
       inserted={}
-      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")
+      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")  rescue monitors_dg={}
+
       if !resource_node.nil? and !resource_node["redborder"].nil? and !resource_node["redborder"]["monitors"].nil?
         send_kafka = false
         resource_node["redborder"]["monitors"].each do |monit|
@@ -59,24 +60,6 @@ module Rbmonitor
       mon = 0
 
       #CONF SECTION
-      #kafka_topic = resource["kafka_topic"]
-      #log_level = resource["log_level"]
-      #config["conf"] = {
-      #  "debug" => log_level,
-      #  "stdout" => 1,
-      #  "syslog" => 0,
-      #  "threads" => [mon/8, 5].min,
-      #  "timeout" => 40,
-      #  "max_snmp_fails" => 2,
-      #  "max_kafka_fails" => 2,
-      #  "sleep_main_thread" => 50,
-      #  "sleep_worker_thread" => 5,
-      #  "kafka_broker" => "kafka.service",
-      #  "kafka_timeout" => 2,
-      #  "kafka_topic" => kafka_topic
-      #}
-
-      #CONF SECTION
       kafka_topic = resource["kafka_topic"]
       log_level = resource["log_level"]
       config["conf"] = {}
@@ -95,31 +78,60 @@ module Rbmonitor
 
       # SNMP MONITORS FOR MANAGERS
       # OID extracted from http://www.debianadmin.com/linux-snmp-oids-for-cpumemory-and-disk-statistics.html
-      snmp_monitors = [
-        { "name" => "load_1",               "oid" => "UCD-SNMP-MIB::laLoad.1",        "unit" => "%" },
-        { "name" => "cpu_idle",             "oid" => "UCD-SNMP-MIB::ssCpuIdle.0",     "unit" => "%",    "send" => 0 },
-        { "name" => "cpu",                  "op"  => "100-cpu_idle",                  "unit" => "%" },
-        { "name" => "memory_total",         "oid" => "UCD-SNMP-MIB::memTotalReal.0",  "unit" => "kB",   "send" => 0 },
-        { "name" => "memory_free",          "oid" => "UCD-SNMP-MIB::memAvailReal.0",  "unit" => "kB",   "send" => 0 },
-        { "name" => "memory_total_buffer",  "oid" => "UCD-SNMP-MIB::memBuffer.0",     "unit" => "kB",   "send" => 0 },
-        { "name" => "memory_total_cache",   "oid" => "UCD-SNMP-MIB::memCached.0",     "unit" => "kB",   "send" => 0 },
-        { "name" => "memory",                                                         "unit" => "%",
-          "op" => "100*(memory_total-memory_free-memory_total_buffer-memory_total_cache)/memory_total" },
-        { "name" => "memory_buffer",                                                  "unit" => "%",
-          "op" => "100*memory_total_buffer/memory_total" },
-        { "name" => "memory_cache",                                                   "unit" => "%",
-          "op" => "100*memory_total_cache/memory_total" },
-        { "name" => "swap_total",           "oid" => "UCD-SNMP-MIB::memTotalSwap.0",  "unit" => "kB",   "send" => 0,  "integer" => 1 },
-        { "name" => "swap_free",            "oid" => "UCD-SNMP-MIB::memAvailSwap.0",  "unit" => "kB",   "send" => 0,  "integer" => 1 },
-        { "name" => "swap",                                                           "unit" => "%",
-          "op" => "100*(swap_total-swap_free)/swap_total" },
-        { "name" => "avio",                                                           "unit" => "ms",
-          "system" => "atop 2 2 |grep avio |  awk '{print $15}' | paste -s -d'+' | sed 's/^/scale=3; (/' | sed 's|$|)/2|' | bc" },
-        { "name" => "disk",                 "oid" => "UCD-SNMP-MIB::dskPercent.1",    "unit" => "%" },
-        { "name" => "disk_load",                                                      "unit" => "%",
-          "system" => "snmptable -v 2c -c #{community} #{hostip} diskIOTable|grep ' dm-0 ' | awk '{print $7}'" }
-      ]
-      mon = mon + 16
+      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitors_dg={}
+      snmp_monitors = []
+      begin
+        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("load_1") 
+          snmp_monitors.push({"name": "load_1", "oid": "UCD-SNMP-MIB::laLoad.1", "unit": "%"},)
+          mon = mon + 1 
+        end
+        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("cpu")
+          snmp_monitors.push({"name": "cpu_idle", "oid":"UCD-SNMP-MIB::ssCpuIdle.0", "unit":"%", "send": 0, "unit": "%"},)
+          snmp_monitors.push({"name": "cpu", "op":"100-cpu_idle", "unit":"%"},)
+          mon = mon + 2
+        end
+        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory") or monitor_dg["monitors"].include?("memory_buffer") or monitor_dg["monitors"].include?("memory_cache")
+          snmp_monitors.push({"name": "memory_total", "oid": "UCD-SNMP-MIB::memTotalReal.0", "send": 0, "unit": "kB" },)
+          snmp_monitors.push({"name": "memory_free",  "oid": "UCD-SNMP-MIB::memAvailReal.0", "send": 0, "unit": "kB" },)
+          snmp_monitors.push({"name": "memory_total_buffer", "oid": "UCD-SNMP-MIB::memBuffer.0", "send": 0, "unit": "kB" },)
+          snmp_monitors.push({"name": "memory_total_cache", "oid": "UCD-SNMP-MIB::memCached.0", "send": 0, "unit": "kB" },)
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory")
+            snmp_monitors.push({"name": "memory", "op": "100*(memory_total-memory_free-memory_total_buffer-memory_total_cache)/memory_total", "unit": "%"},)
+            mon = mon + 1
+          end
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory_buffer")
+             snmp_monitors.push({"name": "memory_buffer", "op": "100*memory_total_buffer/memory_total", "unit": "%"},)
+             mon = mon + 1
+          end
+          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory_cache")
+            snmp_monitors.push({"name": "memory_cache", "op": "100*memory_total_cache/memory_total", "unit": "%"},)
+            mon = mon + 1
+          end
+          mon = mon + 4
+        end
+        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("swap")
+          if !node["memory"].nil? and !node["memory"]["swap"].nil? and !node["memory"]["swap"]["total"].nil? and node["memory"]["swap"]["total"].to_i>0
+            snmp_monitors.push({"name": "swap_total", "oid": "UCD-SNMP-MIB::memTotalSwap.0", "send": 0, "unit": "kB", "integer": 1 },)
+            snmp_monitors.push({"name": "swap_free",  "oid": "UCD-SNMP-MIB::memAvailSwap.0", "send": 0, "unit": "kB", "integer": 1 },)
+            snmp_monitors.push({"name": "swap",  "op": "100*(swap_total-swap_free)/swap_total", "unit": "%"},)
+            mon = mon + 3
+          end
+        end
+        if !monitor_dg["monitors"].nil? and monitor_dg["monitors"].include?("avio")
+          snmp_monitors.push({"name": "avio", "system": "atop 2 2 |grep avio |  awk '{print $15}' | paste -s -d'+' | sed 's/^/scale=3; (/' | sed 's|$|)/2|' | bc", "unit": "ms"},)
+          mon = mon + 1
+        end
+        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk")
+          snmp_monitors.push({"name": "disk", "oid": "UCD-SNMP-MIB::dskPercent.1", "unit": "%"},)
+          mon = mon + 1
+        end
+        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_load")
+          snmp_monitors.push({"name": "disk_load", "system": "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-0 ' | awk '{print $7}'", "unit": "%"})
+          mon = mon + 1
+        end
+      rescue
+        puts "Error, can access to SNMP monitors, skipping snmp monitors"
+      end  
 
       # Kafka
       kafka_monitors = []
@@ -141,7 +153,7 @@ module Rbmonitor
         }
         enabled_services.delete_if { |service| service == nil }
         enabled_services.each do |service|
-          service_list = %w[ druid-broker druid-coordinator druid-historical druid-middleManager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k ]
+          service_list = %w[ druid-broker druid-coordinator druid-historical druid-middlemanager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k ]
           if service_list.include? service
             serv = service.gsub("-", "_")
             memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0,
@@ -379,7 +391,7 @@ module Rbmonitor
         puts "Can't access to device sensor, skipping..."
       end
 
-      conf = {
+      config["conf"] = {
         "debug" => log_level,
         "stdout" => 1,
         "syslog" => 0,
@@ -393,7 +405,6 @@ module Rbmonitor
         "kafka_timeout" => 2,
         "kafka_topic" => kafka_topic
       }
-      config["conf"].push(conf)
 
       return config
     end
