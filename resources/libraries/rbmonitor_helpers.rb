@@ -21,7 +21,7 @@ module Rbmonitor
       monit_array = []
       monit_aux = {}
       inserted={}
-      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")  rescue monitors_dg={}
+      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")  rescue monitor_dg={}
 
       if !resource_node.nil? and !resource_node["redborder"].nil? and !resource_node["redborder"]["monitors"].nil?
         send_kafka = false
@@ -55,400 +55,27 @@ module Rbmonitor
     end
 
     def config_hash(resource)
-      config = {}
       inserted = {}
-      mon = 0
 
       #CONF SECTION
       kafka_topic = resource["kafka_topic"]
       log_level = resource["log_level"]
-      config["conf"] = {}
-
-      #SENSORS SECTION
-      config["sensors"] = []
 
       #Ping and packet statistics between managers
       hostname = resource["hostname"]
-      hostip = resource["hostip"]
+      hostip = node.default[:redborder][:cluster_info][hostname][:ip]
       community = resource["community"]
 
-      ##########################
-      # MANAGER MONITORIZATION
-      ##########################
+      config_hash_manager(hostname, hostip, community)
+      config_hash_cluster(hostname, community)
+      config_hash_services(hostname, hostip, community)
+      config_hash_sensors(resource, hostname, community, inserted)
 
-      # SNMP MONITORS FOR MANAGERS
-      # OID extracted from http://www.debianadmin.com/linux-snmp-oids-for-cpumemory-and-disk-statistics.html
-      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitors_dg={}
-      snmp_monitors = []
-      begin
-        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("load_1") 
-          snmp_monitors.push({"name": "load_1", "oid": "UCD-SNMP-MIB::laLoad.1", "unit": "%"},)
-          mon = mon + 1 
-        end
-        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("cpu")
-          snmp_monitors.push({"name": "cpu_idle", "oid":"UCD-SNMP-MIB::ssCpuIdle.0", "send": 0, "unit": "%"},)
-          snmp_monitors.push({"name": "cpu", "op":"100-cpu_idle", "unit":"%"},)
-          mon = mon + 2
-        end
-        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory") or monitor_dg["monitors"].include?("memory_buffer") or monitor_dg["monitors"].include?("memory_cache")
-          snmp_monitors.push({"name": "memory_total", "oid": "UCD-SNMP-MIB::memTotalReal.0", "send": 0, "unit": "kB" },)
-          snmp_monitors.push({"name": "memory_free",  "oid": "UCD-SNMP-MIB::memAvailReal.0", "send": 0, "unit": "kB" },)
-          snmp_monitors.push({"name": "memory_total_buffer", "oid": "UCD-SNMP-MIB::memBuffer.0", "send": 0, "unit": "kB" },)
-          snmp_monitors.push({"name": "memory_total_cache", "oid": "UCD-SNMP-MIB::memCached.0", "send": 0, "unit": "kB" },)
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory")
-            snmp_monitors.push({"name": "memory", "op": "100*(memory_total-memory_free-memory_total_buffer-memory_total_cache)/memory_total", "unit": "%"},)
-            mon = mon + 1
-          end
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory_buffer")
-             snmp_monitors.push({"name": "memory_buffer", "op": "100*memory_total_buffer/memory_total", "unit": "%"},)
-             mon = mon + 1
-          end
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory_cache")
-            snmp_monitors.push({"name": "memory_cache", "op": "100*memory_total_cache/memory_total", "unit": "%"},)
-            mon = mon + 1
-          end
-          mon = mon + 4
-        end
-        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("swap")
-          if !node["memory"].nil? and !node["memory"]["swap"].nil? and !node["memory"]["swap"]["total"].nil? and node["memory"]["swap"]["total"].to_i>0
-            snmp_monitors.push({"name": "swap_total", "oid": "UCD-SNMP-MIB::memTotalSwap.0", "send": 0, "unit": "kB", "integer": 1 },)
-            snmp_monitors.push({"name": "swap_free",  "oid": "UCD-SNMP-MIB::memAvailSwap.0", "send": 0, "unit": "kB", "integer": 1 },)
-            snmp_monitors.push({"name": "swap",  "op": "100*(swap_total-swap_free)/swap_total", "unit": "%"},)
-            mon = mon + 3
-          end
-        end
-        if !monitor_dg["monitors"].nil? and monitor_dg["monitors"].include?("avio")
-          snmp_monitors.push({"name": "avio", "system": "atop 2 2 |grep avio |  awk '{print $15}' | paste -s -d'+' | sed 's/^/scale=3; (/' | sed 's|$|)/2|' | bc", "unit": "ms"},)
-          mon = mon + 1
-        end
-        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk")
-          snmp_monitors.push({"name": "disk", "oid": "UCD-SNMP-MIB::dskPercent.1", "unit": "%"},)
-          mon = mon + 1
-        end
-        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_load")
-          snmp_monitors.push({"name": "disk_load", "system": "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-0 ' | awk '{print $7}'", "unit": "%"})
-          mon = mon + 1
-        end
-
-        if File.exist?("/dev/mapper/vg_rbdata-lv_aggregated")
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_aggregated")
-            snmp_monitors.push({"name": "disk_aggregated",  "oid": "UCD-SNMP-MIB::dskPercent.2", "unit": "%"},)
-            mon = mon + 1
-          end
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_aggregated_load")
-            snmp_monitors.push({"name": "disk_aggregated_load", "system": "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-1 ' | awk '{print $7}'", "unit": "%"},)
-            mon = mon + 1
-          end
-        end
-        if File.exist?("/dev/mapper/vg_rbdata-lv_raw")
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw")
-            snmp_monitors.push({"name": "disk_raw", "oid": "UCD-SNMP-MIB::dskPercent.3", "unit": "%"},)
-            mon = mon + 1
-          end
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw_load")
-            snmp_monitors.push({"name": "disk_raw_load", "system": "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-2 ' | awk '{print $7}'", "unit": "%"},)
-            mon = mon + 1
-          end 
-        elsif File.exist?("/dev/mapper/vg_rbdata-lv_raw")
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw")
-            snmp_monitors.push({"name": "disk_raw", "oid": "UCD-SNMP-MIB::dskPercent.2", "unit": "%"},)
-            mon = mon + 1
-          end
-        end
-      rescue
-        puts "Error, can't access to SNMP monitors, skipping snmp monitors"
-      end
-
-      # IPMI monitors
-      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitors_dg={}
-      ipmi_monitor = []
-      
-      begin
-        if File.exist?("/dev/ipmi0") or File.exist?("/dev/ipmi/0") or File.exist?("/dev/ipmidev/0")
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("system_temp")
-            ipmi_monitor.push({"name": "system_temp",      "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'System Temp'", "unit": "celsius", "integer": 1},)
-            mon = mon + 1
-          end
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("peripheral_temp")
-            ipmi_monitor.push({"name": "peripheral_temp",  "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'Peripheral[ Temp]*'", "unit": "celsius", "integer": 1},)
-            mon = mon + 1
-          end
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("pch_temp")
-            ipmi_monitor.push({"name": "pch_temp",         "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'PCH Temp'", "unit": "celsius", "integer": 1},)
-            mon = mon + 1
-          end
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("fan")
-            ipmi_monitor.push({"name": "fan",              "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix":"_per_instance", "split":";", "split_op":"mean", "instance_prefix":"fan-", "integer": 1},)
-            mon = mon + 1
-          end
-        end
-      rescue
-        puts "Error, can't access to IPMI, skipping ipmi monitors"
-      end
-
-      # Kafka
-      kafka_monitors = []
-      begin
-        if (node["redborder"]["services"]["kafka"] == true and  File.exist?"/tmp/kafka")
-          #kafka_monitors.push({"name"=> "kafka_disk_cached_pages", "system"=> "find /tmp/kafka/ \\( -size +1 -a -! -type d \\) -exec /opt/rb/bin/pcstat -terse {} \\+ | awk -F',' '{s+=$5;c+=$6}END{print c/s*100}'", "unit"=> "%"},)
-          kafka_monitors.push({"name"=> "cache_hits", "system"=> "sudo /usr/lib/redborder/bin/cachestat.sh | awk '{$1=$1};1'", "unit"=> "%"})
-          mon = mon + 1
-        end
-      rescue
-        puts "Error, can't access to Kafka, skipping kafka monitors"
-      end
-
-      #Calculate used memory per service
-      memory_monitors = []
-      begin
-        enabled_services = node["redborder"]["services"].map { |service|
-          service[0] if service[1]
-        }
-        enabled_services.delete_if { |service| service == nil }
-        enabled_services.each do |service|
-          service_list = %w[ druid-broker druid-coordinator druid-historical druid-middlemanager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k ]
-          if service_list.include? service
-            serv = service.gsub("-", "_")
-            memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0,
-                                   "system" => "sudo /usr/lib/redborder/bin/rb_mem.sh -n #{service} 2>/dev/null" } )
-            memory_monitors.push({ "name" => "memory_#{serv}", "op" => "100*(memory_total_#{serv})/memory_total", "unit" => "%"} )
-            mon = mon + 2
-          end
-        end
-      rescue
-        puts "Can't access to redborder service list, skipping memory services monitorization"
-      end
-
-      #Create monitors array
-      manager_monitors = []
-      manager_monitors.concat(snmp_monitors)
-      manager_monitors.concat(kafka_monitors)
-      manager_monitors.concat(memory_monitors)
-
-      if node["redborder"]["services"]["druid-middlemanager"] == true
-        manager_monitors.push({ "name" => "running_tasks", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -u -n 2>/dev/null", "unit" => "tasks", "integer" => 1})
-        mon = mon + 1
-      end
-
-      manager_sensor = {
-        "timeout" => 5,
-        "sensor_name" => hostname,
-        "sensor_ip" => hostip,
-        "community" => community,
-        "snmp_version" => "2c",
-        "monitors" => manager_monitors
-      }
-      #Finally, add manager sensor tu sensors array in config
-      config["sensors"].push(manager_sensor)
-
-      #########################
-      # BETWEEN MANAGERS (Latency, pkts_lost and pkts_percent_rcv)
-      #########################
-      begin
-        #Calculate next manager to calculate metrics with it
-        managers = node["redborder"]["managers_list"]
-
-        if managers.length > 1
-          next_manager = managers.at((managers.index(hostname)+1) % managers.length)
-          next_manager_ip = node["redborder"]["cluster_info"][next_manager]["ip"]
-          sensor = {
-            "timeout" => 5,
-            "sensor_name" => next_manager,
-            "sensor_ip" => next_manager_ip,
-            "community" => community,
-            "snmp_version" => "2c",
-            "monitors" => [
-              { "name" => "latency",
-                "system" => "nice -n 19 fping -q -s #{next_manager}.node 2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms" },
-              { "name" => "pkts_lost",
-                "system" => "nice -n 19 fping -p 1 -c 10 #{next_manager}.node 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%" },
-              { "name" => "pkts_percent_rcv", "op" => "100 - pkts_lost", "unit" => "%" }
-            ]
-          }
-          mon = mon + 3
-          config["sensors"].push(sensor)
-        end
-      rescue
-        puts "Can't access to manager list, skipping metrics between managers"
-      end
-
-      ####################################
-      # SERVICE SPECIFIC MONITORIZATION
-      ####################################
-
-      # Hadoop resourcemanager (TODO: resolve script dependencies)
-      #begin
-      #  if node["redborder"]["services"]["hadoop-resourcemanager"]
-      #    sensor = {
-      #      "timeout" => 5,
-      #      "sensor_name" => "hadoop-resourcemanager",
-      #      "sensor_ip" => hostip,
-      #      "community" => community,
-      #      "snmp_version" => "2c",
-      #      "monitors" => [
-      #        { "name" => "yarn_memory", "system" => "/opt/rb/bin/rb_get_yarn_capacity.sh -m 2>/dev/null" => "unit" => "%", "integer" => 1 },
-      #        { "name" => "yarn_apps_pending", "system" => "/opt/rb/bin/rb_get_yarn_capacity.sh -p 2>/dev/null", "unit" => "tasks", "integer" => 1 }
-      #      ]
-      #    }
-      #    config["sensors"].push(sensor)
-      #  end
-      #rescue
-      #  puts "Error accessing to redborder service list, skipping hadoop-resourcemanager monitorization"
-      #end
-
-      pipelines = ["bulkstats-pipeline", "location-pipeline", "meraki-pipeline", "mobility-pipeline", "monitor-pipeline", "netflow-pipeline", "nmsp-pipeline", "radius-pipeline", "rbwindow-pipeline", "redfish-pipeline", "scanner-pipeline", "sflow-pipeline", "social-pipeline", "vault-pipeline"]
-      begin
-        if node["redborder"]["services"]["logstash"] == true
-          sensor= {
-            "timeout"=>5,
-            "sensor_name"=> hostname,
-            "sensor_ip"=> hostip,
-            "community" => community,
-            "snmp_version"=> "2c",
-            "monitors"=>
-              [
-                {"name"=> "logstash_cpu", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -c 2>/dev/null", "unit"=> "%"},
-                {"name"=> "logstash_load_1", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -l 2>/dev/null", "unit"=> "%"},
-                {"name"=> "logstash_load_5", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -m 2>/dev/null", "unit"=> "%"},
-                {"name"=> "logstash_load_15", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -n 2>/dev/null", "unit"=> "%"},
-                {"name"=> "logstash_heap", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -u 2>/dev/null", "unit"=> "%"},
-                {"name"=> "logstash_events", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -e 2>/dev/null", "unit"=> "event", "integer"=> 1},
-                {"name"=> "logstash_memory", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -v 2>/dev/null", "unit"=> "bytes", "integer"=> 1}
-              ]
-          }
-          mon = mon + 7
-          config["sensors"].push(sensor)
-          pipelines.each do |pipeline|
-            sensor_pipeline= {
-              "timeout"=>5,
-              "sensor_name"=> "#{hostname}-#{pipeline}",
-              "sensor_ip"=> hostip,
-              "community" => community,
-              "snmp_version"=> "2c",
-              "monitors"=>
-                [
-                  {"name"=> "logstash_events_per_pipeline", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -e "+pipeline+" 2>/dev/null", "unit"=> "event", "integer"=> 1},
-                  {"name"=> "logstash_events_count_queue", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -w "+pipeline+" 2>/dev/null", "unit"=> "event", "integer"=> 1},
-                  {"name"=> "logstash_events_count_queue_bytes", "system"=> "/usr/lib/redborder/bin/rb_get_logstash_stats.sh -z "+pipeline+" 2>/dev/null", "unit"=> "bytes", "integer"=> 1}
-                ]
-            }
-            mon = mon + 3
-            config["sensors"].push(sensor_pipeline)
-          end
-        end
-      rescue
-        puts "Error accessing to redborder service list, skipping logstash monitorization"
-      end
-
-      begin
-        if node["redborder"]["services"]["druid-overlord"] == true
-          sensor = {
-            "timeout" => 5,
-            "sensor_name" => "druid-overlord",
-            "sensor_ip" => hostip,
-            "community" => community,
-            "snmp_version" => "2c",
-            "monitors" => [
-              { "name" => "pending_tasks", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -pn 2>/dev/null", "unit" => "tasks", "integer" => 1},
-              { "name" => "running_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -on 2>/dev/null", "unit" => "tasks", "integer" => 1},
-              { "name" => "desired_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -dn 2>/dev/null", "unit" => "task%", "integer" => 1}
-            ]
-          }
-          mon = mon + 3
-          config["sensors"].push(sensor)
-        end
-      rescue
-        puts "Error accessing to redborder service list, skipping druid-overlord monitorization"
-      end
-
-      begin
-        if node["redborder"]["services"]["druid-coordinator"] == true
-          sensor = {
-            "timeout" => 5,
-            "sensor_name" => "druid-coordinator",
-            "sensor_ip" => hostip,
-            "community" => community,
-            "snmp_version" => "2c",
-            "monitors" => [
-              { "name" => "hot_tier_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tiers.sh -t hot 2>/dev/null", "unit" => "%", "integer" => 1 },
-              { "name" => "default_tier_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tiers.sh -t _default_tier 2>/dev/null", "unit" => "%", "integer" => 1 }
-            ]
-          }
-          mon = mon + 2
-          config["sensors"].push(sensor)
-        end
-      rescue
-        puts "Error accessing to redborder service list, skipping druid-coordinator monitorization"
-      end
-
-      #####################################
-      # SENSOR MONITORIZATION
-      #####################################
-
-      #cluster = resource["cluster"]
-      #managers_index = cluster.map{|x| x.name}.index(node.name)
-
-      # Remote sensors monitored or any managers
-      flow_nodes = resource["flow_nodes"]
-      manager_list = node["redborder"]["managers_list"]
-      begin
-        if !flow_nodes.nil? and manager_list.length>0
-          manager_index = manager_list.find_index(hostname)
-          flow_nodes.each_with_index do |fnode, findex|
-            if !fnode["redborder"]["monitors"].nil? and !fnode["ipaddress"].nil? and fnode["redborder"]["parent_id"].nil?
-              if findex % manager_list.length == manager_index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size > 0
-                sensor = {
-                  "timeout" => 2000,
-                  "sensor_name" => fnode["rbname"].nil? ? fnode.name : fnode["rbname"],
-                  "sensor_ip" => fnode["ipaddress"],
-                  "community" => (fnode["redborder"]["snmp_community"].nil? or fnode["redborder"]["snmp_community"]=="") ? "public" : fnode["redborder"]["snmp_community"].to_s,
-                  "snmp_version" => (fnode["redborder"]["snmp_version"].nil? or fnode["redborder"]["snmp_version"]=="") ? "2c" : fnode["redborder"]["snmp_version"].to_s,
-                  "enrichment" => enrich(flow_nodes[findex]),
-                  "monitors" => monitors(flow_nodes[findex],inserted)
-                }
-                mon = mon + fnode["redborder"]["monitors"].length
-                config["sensors"].push(sensor)
-              end
-            end
-          end
-        end
-      rescue
-        puts "Can't access to flow sensor, skipping..."
-      end
-
-      # DEVICES SENSORS
-      device_nodes = resource["device_nodes"]
-      manager_list = node["redborder"]["managers_list"]
-      begin
-        if !device_nodes.nil? and manager_list.length>0
-          manager_index = manager_list.find_index(hostname)
-          device_nodes.each_with_index do |dnode, dindex|
-            if !dnode["redborder"]["monitors"].nil? and !dnode["ipaddress"].nil? and dnode["redborder"]["parent_id"].nil?
-              if dindex % manager_list.length == manager_index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length > 0
-                sensor = {
-                  "timeout" => 2000,
-                  "sensor_name" => dnode["rbname"].nil? ? dnode.name : dnode["rbname"],
-                  "sensor_ip" => dnode["ipaddress"],
-                  "community" => (dnode["redborder"]["snmp_community"].nil? or dnode["redborder"]["snmp_community"]=="") ? "public" : dnode["redborder"]["snmp_community"].to_s,
-                  "snmp_version" => (dnode["redborder"]["snmp_version"].nil? or dnode["redborder"]["snmp_version"]=="") ? "2c" : dnode["redborder"]["snmp_version"].to_s,
-                  "enrichment" => enrich(device_nodes[dindex]),
-                  "monitors" => monitors(device_nodes[dindex],inserted)
-                }
-                mon = mon + dnode["redborder"]["monitors"].length
-                config["sensors"].push(sensor)
-              end
-            end
-          end
-        end
-      rescue
-        puts "Can't access to device sensor, skipping..."
-      end
-
-      config["conf"] = {
+      node.default["redborder"]["monitor"]["config"][:conf] = {
         "debug" => log_level,
         "stdout" => 1,
         "syslog" => 0,
-        "threads" => [mon/8, 5].min,
+        "threads" => [node.default[:redborder][:monitor][:count]/8, 5].min,
         "timeout" => 40,
         "max_snmp_fails" => 2,
         "max_kafka_fails" => 2,
@@ -459,7 +86,9 @@ module Rbmonitor
         "kafka_topic" => kafka_topic
       }
 
-      return config
+      return node.default["redborder"]["monitor"]["config"]
+
     end
+
   end
 end
