@@ -8,7 +8,7 @@ action :add do
     config_dir = new_resource.config_dir
     kafka_topic = new_resource.kafka_topic
     hostname = new_resource.name
-    hostip = new_resource.ip
+    hostip = new_resource.hostip
     community = new_resource.community
     log_level = new_resource.log_level
     user = "redborder-monitor"
@@ -16,6 +16,7 @@ action :add do
     flow_nodes = new_resource.flow_nodes
     managers = new_resource.managers
     cluster = new_resource.cluster
+    monitor_dg = new_resource.monitor_dg
 
     yum_package "redborder-monitor" do
       action :upgrade
@@ -48,6 +49,7 @@ action :add do
     resource["log_level"] = log_level
     resource["device_nodes"] = device_nodes
     resource["flow_nodes"] = flow_nodes
+    resource["monitor_dg"] = monitor_dg
     resource["managers"] = managers
     resource["cluster"] = cluster
 
