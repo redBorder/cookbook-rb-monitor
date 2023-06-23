@@ -1,14 +1,14 @@
 module Rbmonitor
   module Helpers
     
-    def config_hash_cluster(hostname, community)
+    def update_cluster_config(resource)
       
       #########################
       # BETWEEN MANAGERS (Latency, pkts_lost and pkts_percent_rcv)
       #########################
       begin
         #Calculate next manager to calculate metrics with it
-        managers = node.default["redborder"]["managers_list"]
+        managers = resource["managers"]
         if managers.length > 1
           managers.each do | current_manager |
             next_manager = managers.at((managers.index(current_manager)+1) % managers.length)
@@ -17,7 +17,7 @@ module Rbmonitor
               "timeout" => 5,
               "sensor_name" => next_manager,
               "sensor_ip" => next_manager_ip,
-              "community" => community,
+              "community" => resource["community"],
               "snmp_version" => "2c",
               "monitors" => [
                 { "name" => "latency",

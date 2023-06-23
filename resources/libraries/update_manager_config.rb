@@ -1,7 +1,7 @@
 module Rbmonitor
   module Helpers
   
-    def config_hash_manager(hostname, hostip, community)
+    def update_manager_config(resource)
 
       ##########################
       # MANAGER MONITORIZATION
@@ -86,30 +86,31 @@ module Rbmonitor
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
         end
-      rescue
+      rescue => e
+        Chef::Log.error(e.message)
         puts "Error, can't access to SNMP monitors, skipping snmp monitors"
       end
 
       # IPMI monitors
       monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitor_dg={}
-      ipmi_monitor = []
+      ipmi_monitors = []
       
       begin
         if File.exist?("/dev/ipmi0") or File.exist?("/dev/ipmi/0") or File.exist?("/dev/ipmidev/0")
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("system_temp")
-            ipmi_monitor.push({"name": "system_temp",      "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'System Temp'", "unit": "celsius", "integer": 1},)
+            ipmi_monitors.push({"name": "system_temp",      "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'System Temp'", "unit": "celsius", "integer": 1},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("peripheral_temp")
-            ipmi_monitor.push({"name": "peripheral_temp",  "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'Peripheral[ Temp]*'", "unit": "celsius", "integer": 1},)
+            ipmi_monitors.push({"name": "peripheral_temp",  "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'Peripheral[ Temp]*'", "unit": "celsius", "integer": 1},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("pch_temp")
-            ipmi_monitor.push({"name": "pch_temp",         "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'PCH Temp'", "unit": "celsius", "integer": 1},)
+            ipmi_monitors.push({"name": "pch_temp",         "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'PCH Temp'", "unit": "celsius", "integer": 1},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("fan")
-            ipmi_monitor.push({"name": "fan",              "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix":"_per_instance", "split":";", "split_op":"mean", "instance_prefix":"fan-", "integer": 1},)
+            ipmi_monitors.push({"name": "fan",              "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix":"_per_instance", "split":";", "split_op":"mean", "instance_prefix":"fan-", "integer": 1},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
         end
@@ -153,6 +154,7 @@ module Rbmonitor
       #Create monitors array
       manager_monitors = []
       manager_monitors.concat(snmp_monitors)
+      manager_monitors.concat(ipmi_monitors)
       manager_monitors.concat(kafka_monitors)
       manager_monitors.concat(memory_monitors)
 
@@ -163,9 +165,9 @@ module Rbmonitor
 
       manager_sensor = {
         "timeout" => 5,
-        "sensor_name" => hostname,
-        "sensor_ip" => hostip,
-        "community" => community,
+        "sensor_name" => resource["hostname"],
+        "sensor_ip" => resource["hostip"],
+        "community" => resource["community"],
         "snmp_version" => "2c",
         "monitors" => manager_monitors
       }

@@ -1,6 +1,6 @@
 module Rbmonitor
   module Helpers
-    inserted = {}
+    #inserted = {}
     def enrich(resource_node)
       node={}
       node[:name] = resource_node["rbname"] if resource_node["rbname"]
@@ -54,7 +54,7 @@ module Rbmonitor
       return monit_array
     end
 
-    def config_hash(resource)
+    def update_config(resource)
       inserted = {}
 
       #CONF SECTION
@@ -62,14 +62,14 @@ module Rbmonitor
       log_level = resource["log_level"]
 
       #Ping and packet statistics between managers
-      hostname = resource["hostname"]
-      hostip = node.default[:redborder][:cluster_info][hostname][:ip]
-      community = resource["community"]
+      #hostname = resource["hostname"]
+      #resource["hostip"] = node.default[:redborder][:cluster_info][hostname][:ip]
+      #community = resource["community"]
 
-      config_hash_manager(hostname, hostip, community)
-      config_hash_cluster(hostname, community)
-      config_hash_services(hostname, hostip, community)
-      config_hash_sensors(resource, hostname, community, inserted)
+      update_manager_config(resource)
+      update_cluster_config(resource)
+      update_service_config(resource)
+      update_sensor_config(resource, inserted)
 
       node.default["redborder"]["monitor"]["config"][:conf] = {
         "debug" => log_level,

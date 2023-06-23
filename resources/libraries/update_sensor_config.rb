@@ -1,8 +1,8 @@
 module Rbmonitor
   module Helpers
   
-    def config_hash_sensors(resource, hostname, community, inserted)
-
+    def update_sensor_config(resource, inserted)
+    
       #####################################
       # SENSOR MONITORIZATION
       #####################################
@@ -12,19 +12,13 @@ module Rbmonitor
 
       # Remote sensors monitored or any managers
       flow_nodes = resource["flow_nodes"]
-      manager_list = node.default["redborder"]["managers_list"]
+      manager_list = resource["managers"]
       begin
         if !flow_nodes.nil? and manager_list.length>0
-          puts "IMPRIMIENDO FLOW NODES"
-          puts flow_nodes
-          manager_index = manager_list.find_index(hostname)
+          manager_index = manager_list.find_index(resource["hostname"])
           flow_nodes.each_with_index do |fnode, findex|
-            puts "IMPRIMIENDO FNODE"
-            puts fnode
             if !fnode["redborder"]["monitors"].nil? and !fnode["ipaddress"].nil? and fnode["redborder"]["parent_id"].nil?
               if findex % manager_list.length == manager_index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size > 0
-                puts "IMPRIMIENDO FINDEX"
-                puts findex
                 sensor = {
                   "timeout" => 2000,
                   "sensor_name" => fnode["rbname"].nil? ? fnode.name : fnode["rbname"],
@@ -35,7 +29,7 @@ module Rbmonitor
                   "monitors" => monitors(flow_nodes[findex],inserted)
                 }
                 node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + fnode["redborder"]["monitors"].length
-                node.default[:redborder][:monitor][:config][:sensors].push(sensor)
+                node.default["redborder"]["monitor"]["config"][:sensors].push(sensor)
               end
             end
           end
@@ -49,7 +43,7 @@ module Rbmonitor
       manager_list = node["redborder"]["managers_list"]
       begin
         if !device_nodes.nil? and manager_list.length>0
-          manager_index = manager_list.find_index(hostname)
+          manager_index = manager_list.find_index(resource["hostname"])
           device_nodes.each_with_index do |dnode, dindex|
             if !dnode["redborder"]["monitors"].nil? and !dnode["ipaddress"].nil? and dnode["redborder"]["parent_id"].nil?
               if dindex % manager_list.length == manager_index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length > 0

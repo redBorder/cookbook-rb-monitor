@@ -1,7 +1,7 @@
 module Rbmonitor
   module Helpers
   
-    def config_hash_services(hostname, hostip, community)
+    def update_service_config(resource)
 
       ####################################
       # SERVICE SPECIFIC MONITORIZATION
@@ -32,9 +32,9 @@ module Rbmonitor
         if node.default["redborder"]["services"]["logstash"] == true
           sensor= {
             "timeout"=>5,
-            "sensor_name"=> hostname,
-            "sensor_ip"=> hostip,
-            "community" => community,
+            "sensor_name"=> resource["hostname"],
+            "sensor_ip"=> resource["hostip"],
+            "community" => resource["community"],
             "snmp_version"=> "2c",
             "monitors"=>
               [
@@ -52,9 +52,9 @@ module Rbmonitor
           pipelines.each do |pipeline|
             sensor_pipeline= {
               "timeout"=>5,
-              "sensor_name"=> "#{hostname}-#{pipeline}",
-              "sensor_ip"=> hostip,
-              "community" => community,
+              "sensor_name"=> "#{resource["hostname"]}-#{pipeline}",
+              "sensor_ip"=> resource["hostip"],
+              "community" => resource["community"],
               "snmp_version"=> "2c",
               "monitors"=>
                 [
@@ -76,8 +76,8 @@ module Rbmonitor
           sensor = {
             "timeout" => 5,
             "sensor_name" => "druid-overlord",
-            "sensor_ip" => hostip,
-            "community" => community,
+            "sensor_ip"=> resource["hostip"],
+            "community" => resource["community"],
             "snmp_version" => "2c",
             "monitors" => [
               { "name" => "pending_tasks", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -pn 2>/dev/null", "unit" => "tasks", "integer" => 1},
@@ -97,8 +97,8 @@ module Rbmonitor
           sensor = {
             "timeout" => 5,
             "sensor_name" => "druid-coordinator",
-            "sensor_ip" => hostip,
-            "community" => community,
+            "sensor_ip"=> resource["hostip"],
+            "community" => resource["community"],
             "snmp_version" => "2c",
             "monitors" => [
               { "name" => "hot_tier_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tiers.sh -t hot 2>/dev/null", "unit" => "%", "integer" => 1 },
