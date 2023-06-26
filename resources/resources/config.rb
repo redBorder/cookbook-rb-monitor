@@ -14,5 +14,4 @@ attribute :log_level, :kind_of => Integer, :default => 3
 attribute :device_nodes, :kind_of => Array, :default => []
 attribute :flow_nodes, :kind_of => Array, :default => []
 attribute :managers, :kind_of => Array, :default => []
-attribute :cluster, :kind_of => Hash, :default => {}
-attribute :monitor_dg, :kind_of => Hash, :default => []
+attribute :cluster, :kind_of => Hash, :default => []

@@ -1,6 +1,6 @@
 module Rbmonitor
   module Helpers
-    #inserted = {}
+    
     def enrich(resource_node)
       node={}
       node[:name] = resource_node["rbname"] if resource_node["rbname"]
@@ -20,7 +20,7 @@ module Rbmonitor
 
       monit_array = []
       monit_aux = {}
-      inserted={}
+      inserted = {}
       monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")  rescue monitor_dg={}
 
       if !resource_node.nil? and !resource_node["redborder"].nil? and !resource_node["redborder"]["monitors"].nil?
@@ -61,14 +61,10 @@ module Rbmonitor
       kafka_topic = resource["kafka_topic"]
       log_level = resource["log_level"]
 
-      #Ping and packet statistics between managers
-      #hostname = resource["hostname"]
-      #resource["hostip"] = node.default[:redborder][:cluster_info][hostname][:ip]
-      #community = resource["community"]
-
-      update_manager_config(resource)
+      #CALLS TO ADD MONITORS
       update_cluster_config(resource)
       update_service_config(resource)
+      update_manager_config(resource)
       update_sensor_config(resource, inserted)
 
       node.default["redborder"]["monitor"]["config"][:conf] = {

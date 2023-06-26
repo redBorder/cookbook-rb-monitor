@@ -10,7 +10,7 @@ module Rbmonitor
       #cluster = resource["cluster"]
       #managers_index = cluster.map{|x| x.name}.index(node.name)
 
-      # Remote sensors monitored or any managers
+      # FLOW SENSORS
       flow_nodes = resource["flow_nodes"]
       manager_list = resource["managers"]
       begin
@@ -18,9 +18,9 @@ module Rbmonitor
           manager_index = manager_list.find_index(resource["hostname"])
           flow_nodes.each_with_index do |fnode, findex|
             if !fnode["redborder"]["monitors"].nil? and !fnode["ipaddress"].nil? and fnode["redborder"]["parent_id"].nil?
-              if findex % manager_list.length == manager_index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size > 0
+              if !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size > 0
                 sensor = {
-                  "timeout" => 2000,
+                  "timeout" => 5,
                   "sensor_name" => fnode["rbname"].nil? ? fnode.name : fnode["rbname"],
                   "sensor_ip" => fnode["ipaddress"],
                   "community" => (fnode["redborder"]["snmp_community"].nil? or fnode["redborder"]["snmp_community"]=="") ? "public" : fnode["redborder"]["snmp_community"].to_s,
@@ -46,9 +46,9 @@ module Rbmonitor
           manager_index = manager_list.find_index(resource["hostname"])
           device_nodes.each_with_index do |dnode, dindex|
             if !dnode["redborder"]["monitors"].nil? and !dnode["ipaddress"].nil? and dnode["redborder"]["parent_id"].nil?
-              if dindex % manager_list.length == manager_index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length > 0
+              if !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length > 0
                 sensor = {
-                  "timeout" => 2000,
+                  "timeout" => 5,
                   "sensor_name" => dnode["rbname"].nil? ? dnode.name : dnode["rbname"],
                   "sensor_ip" => dnode["ipaddress"],
                   "community" => (dnode["redborder"]["snmp_community"].nil? or dnode["redborder"]["snmp_community"]=="") ? "public" : dnode["redborder"]["snmp_community"].to_s,

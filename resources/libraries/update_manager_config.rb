@@ -17,8 +17,8 @@ module Rbmonitor
           node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1 
         end
         if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("cpu")
-          snmp_monitors.push({"name": "cpu_idle", "oid":"UCD-SNMP-MIB::ssCpuIdle.0", "send": 0, "unit": "%"},)
-          snmp_monitors.push({"name": "cpu", "op":"100-cpu_idle", "unit":"%"},)
+          snmp_monitors.push({"name": "cpu_idle", "oid": "UCD-SNMP-MIB::ssCpuIdle.0", "send": 0, "unit": "%"},)
+          snmp_monitors.push({"name": "cpu", "op": "100-cpu_idle", "unit": "%"},)
           node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 2
         end
         if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory") or monitor_dg["monitors"].include?("memory_buffer") or monitor_dg["monitors"].include?("memory_cache")
@@ -86,8 +86,7 @@ module Rbmonitor
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
         end
-      rescue => e
-        Chef::Log.error(e.message)
+      rescue 
         puts "Error, can't access to SNMP monitors, skipping snmp monitors"
       end
 
@@ -110,7 +109,7 @@ module Rbmonitor
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("fan")
-            ipmi_monitors.push({"name": "fan",              "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix":"_per_instance", "split":";", "split_op":"mean", "instance_prefix":"fan-", "integer": 1},)
+            ipmi_monitors.push({"name": "fan",              "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix": "_per_instance", "split": ";", "split_op": "mean", "instance_prefix": "fan-", "integer": 1},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
         end
@@ -122,7 +121,7 @@ module Rbmonitor
       kafka_monitors = []
       begin
         if (node.default["redborder"]["services"]["kafka"] == true and  File.exist?"/tmp/kafka")
-          #kafka_monitors.push({"name"=> "kafka_disk_cached_pages", "system"=> "find /tmp/kafka/ \\( -size +1 -a -! -type d \\) -exec /usr/local/bin/pcstat -terse {} \\+ | awk -F',' '{s+=$5;c+=$6}END{print c/s*100}'", "unit"=> "%"},)
+          kafka_monitors.push({"name"=> "kafka_disk_cached_pages", "system"=> "find /tmp/kafka/ \\( -size +1 -a -! -type d \\) -exec /usr/local/bin/pcstat -terse {} \\+ | awk -F',' '{s+=$5;c+=$6}END{print c/s*100}'", "unit"=> "%"},)
           kafka_monitors.push({"name"=> "cache_hits", "system"=> "sudo /usr/lib/redborder/bin/cachestat.sh | awk '{$1=$1};1'", "unit"=> "%"})
           node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
         end
