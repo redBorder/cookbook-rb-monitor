@@ -57,11 +57,11 @@ module Rbmonitor
     def update_config(resource)
       inserted = {}
 
-      #CONF SECTION
+      # Conf section
       kafka_topic = resource["kafka_topic"]
       log_level = resource["log_level"]
 
-      #CALLS TO ADD MONITORS
+      # Calls to add monitors
       update_cluster_config(resource)
       update_service_config(resource)
       update_manager_config(resource)
@@ -82,6 +82,7 @@ module Rbmonitor
         "kafka_topic" => kafka_topic
       }
 
+      # Send the hash with all the sensors and the configuration to the template
       return node.default["redborder"]["monitor"]["config"]
 
     end

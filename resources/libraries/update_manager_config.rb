@@ -7,7 +7,7 @@ module Rbmonitor
       # MANAGER MONITORIZATION
       ##########################
 
-      # SNMP MONITORS FOR MANAGERS
+      # SNMP monitors for managers
       # OID extracted from http://www.debianadmin.com/linux-snmp-oids-for-cpumemory-and-disk-statistics.html
       monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitor_dg={}
       snmp_monitors = []
@@ -48,7 +48,7 @@ module Rbmonitor
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 3
           end
         end
-        if monitor_dg["monitors"].nil? and monitor_dg["monitors"].include?("avio")
+        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("avio")
           snmp_monitors.push({"name": "avio", "system": "atop 2 2 |grep avio |  awk '{print $15}' | paste -s -d'+' | sed 's/^/scale=3; (/' | sed 's|$|)/2|' | bc", "unit": "ms"},)
           node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
         end
@@ -117,7 +117,7 @@ module Rbmonitor
         puts "Error, can't access to IPMI, skipping ipmi monitors"
       end
 
-      # Kafka
+      # Kafka monitors
       kafka_monitors = []
       begin
         if (node.default["redborder"]["services"]["kafka"] == true and  File.exist?"/tmp/kafka")
@@ -130,7 +130,7 @@ module Rbmonitor
       end
 
       #Calculate used memory per service
-      memory_monitors = []
+      memory_monitors = ["/* MEMORY PER SERVICE */"]
       begin
         enabled_services = node.default["redborder"]["services"].map { |service|
           service[0] if service[1]
@@ -151,7 +151,7 @@ module Rbmonitor
       end
 
       #Create monitors array
-      manager_monitors = []
+      manager_monitors = ["/* OID extracted from http://www.debianadmin.com/linux-snmp-oids-for-cpumemory-and-disk-statistics.html */"]
       manager_monitors.concat(snmp_monitors)
       manager_monitors.concat(ipmi_monitors)
       manager_monitors.concat(kafka_monitors)

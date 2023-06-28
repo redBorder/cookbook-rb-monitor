@@ -27,6 +27,7 @@ module Rbmonitor
       #  puts "Error accessing to redborder service list, skipping hadoop-resourcemanager monitorization"
       #end
 
+      # Logstash
       pipelines = ["bulkstats-pipeline", "location-pipeline", "meraki-pipeline", "mobility-pipeline", "monitor-pipeline", "netflow-pipeline", "nmsp-pipeline", "radius-pipeline", "rbwindow-pipeline", "redfish-pipeline", "scanner-pipeline", "sflow-pipeline", "social-pipeline", "vault-pipeline"]
       begin
         if node.default["redborder"]["services"]["logstash"] == true
@@ -71,6 +72,7 @@ module Rbmonitor
         puts "Error accessing to redborder service list, skipping logstash monitorization"
       end
 
+      # Druid-overlord
       begin
         if node.default["redborder"]["services"]["druid-overlord"] == true
           sensor = {
@@ -92,6 +94,7 @@ module Rbmonitor
         puts "Error accessing to redborder service list, skipping druid-overlord monitorization"
       end
 
+      # Druid-coordinator
       begin
         if node.default["redborder"]["services"]["druid-coordinator"] == true
           sensor = {

@@ -15,10 +15,16 @@ module Rbmonitor
       manager_list = resource["managers"]
       begin
         if !flow_nodes.nil? and manager_list.length>0
+          # Title of section
+          node.default["redborder"]["monitor"]["config"][:sensors].push("/* REMOTE SENSORS, MONITORED ON ANY MANAGER */")
           manager_index = manager_list.find_index(resource["hostname"])
           flow_nodes.each_with_index do |fnode, findex|
             if !fnode["redborder"]["monitors"].nil? and !fnode["ipaddress"].nil? and fnode["redborder"]["parent_id"].nil?
-              if !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size > 0
+              fnode_name = fnode["rbname"].nil? ? fnode.name : fnode["rbname"]
+              fnode_count = fnode["redborder"]["monitors"].size
+              if findex % manager_list.length == manager_index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size > 0    
+                # Title of sensor
+                node.default["redborder"]["monitor"]["config"][:sensors].push("/* Node: #{fnode_name}    Monitors: #{fnode_count}  */")
                 sensor = {
                   "timeout" => 5,
                   "sensor_name" => fnode["rbname"].nil? ? fnode.name : fnode["rbname"],
@@ -30,6 +36,9 @@ module Rbmonitor
                 }
                 node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + fnode["redborder"]["monitors"].length
                 node.default["redborder"]["monitor"]["config"][:sensors].push(sensor)
+              else
+                # The sensor is registered in another manager
+                node.default["redborder"]["monitor"]["config"][:sensors].push("/* Node: #{fnode_name}    Monitors: #{fnode_count} (not in this manager) */")
               end
             end
           end
@@ -43,10 +52,16 @@ module Rbmonitor
       manager_list = node["redborder"]["managers_list"]
       begin
         if !device_nodes.nil? and manager_list.length>0
+          # Title of section
+          node.default["redborder"]["monitor"]["config"][:sensors].push("/* DEVICE SENSORS */")
           manager_index = manager_list.find_index(resource["hostname"])
           device_nodes.each_with_index do |dnode, dindex|
             if !dnode["redborder"]["monitors"].nil? and !dnode["ipaddress"].nil? and dnode["redborder"]["parent_id"].nil?
-              if !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length > 0
+              dnode_name = dnode["rbname"].nil? ? dnode.name : dnode["rbname"]
+              dnode_count = dnode["redborder"]["monitors"].size
+              if dindex % manager_list.length == manager_index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length > 0
+                # Title of sensor
+                node.default["redborder"]["monitor"]["config"][:sensors].push("/* Node: #{dnode_name}    Monitors: #{dnode_count}  */")
                 sensor = {
                   "timeout" => 5,
                   "sensor_name" => dnode["rbname"].nil? ? dnode.name : dnode["rbname"],
@@ -58,6 +73,9 @@ module Rbmonitor
                 }
                 node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + dnode["redborder"]["monitors"].length
                 node.default["redborder"]["monitor"]["config"][:sensors].push(sensor)
+              else
+                # The sensor is registered in another manager
+                node.default["redborder"]["monitor"]["config"][:sensors].push("/* Node: #{dnode_name}    Monitors: #{dnode_count} (not in this manager) */")
               end
             end
           end
