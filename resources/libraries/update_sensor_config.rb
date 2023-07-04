@@ -19,7 +19,7 @@ module Rbmonitor
           node.default["redborder"]["monitor"]["config"][:sensors].push("/* REMOTE SENSORS, MONITORED ON ANY MANAGER */")
           manager_index = manager_list.find_index(resource["hostname"])
           flow_nodes.each_with_index do |fnode, findex|
-            if !fnode["redborder"]["monitors"].nil? and !fnode["ipaddress"].nil? and fnode["redborder"]["parent_id"].nil?
+            if fnode["redborder"]["monitors"].size > 0 and !fnode["ipaddress"].nil? and fnode["redborder"]["parent_id"].nil?
               fnode_name = fnode["rbname"].nil? ? fnode.name : fnode["rbname"]
               fnode_count = fnode["redborder"]["monitors"].size
               if findex % manager_list.length == manager_index and !fnode["redborder"].nil? and fnode["redborder"]["monitors"].size > 0    
@@ -56,7 +56,7 @@ module Rbmonitor
           node.default["redborder"]["monitor"]["config"][:sensors].push("/* DEVICE SENSORS */")
           manager_index = manager_list.find_index(resource["hostname"])
           device_nodes.each_with_index do |dnode, dindex|
-            if !dnode["redborder"]["monitors"].nil? and !dnode["ipaddress"].nil? and dnode["redborder"]["parent_id"].nil?
+            if dnode["redborder"]["monitors"].size > 0 and !dnode["ipaddress"].nil? and dnode["redborder"]["parent_id"].nil?
               dnode_name = dnode["rbname"].nil? ? dnode.name : dnode["rbname"]
               dnode_count = dnode["redborder"]["monitors"].size
               if dindex % manager_list.length == manager_index and !dnode["redborder"].nil? and dnode["redborder"]["monitors"].length > 0
