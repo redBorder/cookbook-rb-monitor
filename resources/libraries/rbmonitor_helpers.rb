@@ -3,7 +3,7 @@ module Rbmonitor
     
     def enrich(resource_node)
       node={}
-      node[:name] = resource_node["rbname"] if resource_node["rbname"]
+      node[:name] = resource_node["hostname"] if resource_node["hostname"]
       node[:uuid] = resource_node["redborder"]["sensor_uuid"] if resource_node["redborder"] and resource_node["redborder"]["sensor_uuid"]
       node[:service_provider] = resource_node["redborder"]["service_provider"] if resource_node["redborder"] and resource_node["redborder"]["service_provider"]
       node[:service_provider_uuid] = resource_node["redborder"]["service_provider_uuid"] if resource_node["redborder"] and resource_node["redborder"]["service_provider_uuid"]
@@ -27,6 +27,8 @@ module Rbmonitor
         send_kafka = false
         resource_node["redborder"]["monitors"].each do |monit|
           monit_aux = monit.to_hash
+          next if ( (monit["name"]=="swap" or monit["name"]=="swap_free" or monit["name"]=="swap_total") and resource_node["memory"]["swap"]["total"].to_i==0 and resource_node["redborder"]["is_ips"]) 
+          next if ( (monit["name"]=="system_temp" or monit["name"]=="" or monit["name"]=="" ) and !File.exist?"/dev/ipmi0" and !File.exist?"/dev/ipmi/0" and !File.exist?"/dev/ipmidev/0" and resource_node["redborder"]["is_ips"]) 
           if inserted[monit_aux["name"]].nil? and (monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?(monit_aux["name"]))
             resource_node["redborder"]["monitors"].each do |monit2|
               monit2_aux = monit2.to_hash
@@ -62,25 +64,61 @@ module Rbmonitor
       log_level = resource["log_level"]
 
       # Calls to add monitors
-      update_cluster_config(resource)
-      update_service_config(resource)
-      update_manager_config(resource)
-      update_sensor_config(resource, inserted)
+      update_service_config(resource) if node["redborder"]["is_manager"]
+      update_cluster_config(resource) if node["redborder"]["is_manager"]
+      update_manager_config(resource) if node["redborder"]["is_manager"]
+      update_sensor_config(resource, inserted) if node["redborder"]["is_manager"]
 
+      update_ips_config(resource, inserted) if node["redborder"]["is_ips"]
+
+      if node["redborder"]["is_manager"] or node["redborder"]["is_proxy"]
+        node.default["redborder"]["monitor"]["config"][:conf] = {
+          "debug" => log_level,
+          "stdout" => 1,
+          "syslog" => 0,
+          "threads" => [node.default[:redborder][:monitor][:count]/8, 5].min, 
+          "timeout" => 40,
+          "max_snmp_fails" => 2,
+          "max_kafka_fails" => 2,
+          "sleep_main_thread" => 50,
+          "sleep_worker_thread" => 5,
+          "kafka_broker" => "kafka.service",
+          "kafka_timeout" => 2,
+          "kafka_topic" => kafka_topic
+        }
+      end
+
+      if node["redborder"]["is_ips"]
       node.default["redborder"]["monitor"]["config"][:conf] = {
         "debug" => log_level,
         "stdout" => 1,
         "syslog" => 0,
-        "threads" => [node.default[:redborder][:monitor][:count]/8, 5].min,
-        "timeout" => 40,
+        "threads" => 1, 
+        "timeout" => 30,
         "max_snmp_fails" => 2,
         "max_kafka_fails" => 2,
-        "sleep_main_thread" => 50,
+        "sleep_main_thread" => 25,
         "sleep_worker_thread" => 5,
-        "kafka_broker" => "kafka.service",
-        "kafka_timeout" => 2,
-        "kafka_topic" => kafka_topic
       }
+      # TODO: IPS cloud
+      #if (!node["redborder"]["cloud"].nil? and (node["redborder"]["cloud"]==1 or node["redborder"]["cloud"]=="1" or node["redborder"]["cloud"]==true or node["redborder"]["cloud"]=="true")) and node["redborder"]["sensor_id"] and node["redborder"]["sensor_id"].to_i>0
+      #  node.default["redborder"]["monitor"]["config"][:conf] = node.default["redborder"]["monitor"]["config"][:conf].merge({
+    #"http_endpoint" => "https://data.#{node["redborder"]["cdomain"]}/rbdata/#{node["redborder"]["sensor_uuid"]}/rb_monitor",
+    #"http_max_total_connections" => 10,
+    #"http_timeout" => 10000,
+    #"http_connttimeout" => 10000,
+    #"http_verbose" => 0,
+    #"rb_http_max_messages" => 1024,
+    #"rb_http_mode" => "deflated"
+    #    })
+    #  else
+        node.default["redborder"]["monitor"]["config"][:conf] = node.default["redborder"]["monitor"]["config"][:conf].merge({
+    "kafka_broker" => "kafka.service",
+    "kafka_timeout" => 2,
+    "kafka_topic" => kafka_topic
+        })
+     # end
+      end
 
       # Send the hash with all the sensors and the configuration to the template
       return node.default["redborder"]["monitor"]["config"]
