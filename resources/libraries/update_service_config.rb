@@ -16,7 +16,8 @@ module Rbmonitor
       #      "sensor_ip" => hostip,
       #      "community" => community,
       #      "snmp_version" => "2c",
-      #      "monitors" => [
+      #      "monitors" => 
+      #[
       #        { "name" => "yarn_memory", "system" => "/opt/rb/bin/rb_get_yarn_capacity.sh -m 2>/dev/null" => "unit" => "%", "integer" => 1 },
       #        { "name" => "yarn_apps_pending", "system" => "/opt/rb/bin/rb_get_yarn_capacity.sh -p 2>/dev/null", "unit" => "tasks", "integer" => 1 }
       #      ]
@@ -81,7 +82,8 @@ module Rbmonitor
             "sensor_ip"=> resource["hostip"],
             "community" => resource["community"],
             "snmp_version" => "2c",
-            "monitors" => [
+            "monitors" => 
+            [
               { "name" => "pending_tasks", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -pn 2>/dev/null", "unit" => "tasks", "integer" => 1},
               { "name" => "running_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -on 2>/dev/null", "unit" => "tasks", "integer" => 1},
               { "name" => "desired_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -dn 2>/dev/null", "unit" => "task%", "integer" => 1}
@@ -103,7 +105,8 @@ module Rbmonitor
             "sensor_ip"=> resource["hostip"],
             "community" => resource["community"],
             "snmp_version" => "2c",
-            "monitors" => [
+            "monitors" => 
+            [
               { "name" => "hot_tier_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tiers.sh -t hot 2>/dev/null", "unit" => "%", "integer" => 1 },
               { "name" => "default_tier_capacity", "system" => "/usr/lib/redborder/bin/rb_get_tiers.sh -t _default_tier 2>/dev/null", "unit" => "%", "integer" => 1 }
             ]

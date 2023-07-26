@@ -3,7 +3,7 @@ module Rbmonitor
     
     def enrich(resource_node)
       node={}
-      node[:name] = resource_node["rbname"] if resource_node["rbname"]
+      node[:name] = resource_node["hostname"] if resource_node["hostname"]
       node[:uuid] = resource_node["redborder"]["sensor_uuid"] if resource_node["redborder"] and resource_node["redborder"]["sensor_uuid"]
       node[:service_provider] = resource_node["redborder"]["service_provider"] if resource_node["redborder"] and resource_node["redborder"]["service_provider"]
       node[:service_provider_uuid] = resource_node["redborder"]["service_provider_uuid"] if resource_node["redborder"] and resource_node["redborder"]["service_provider_uuid"]
@@ -16,7 +16,7 @@ module Rbmonitor
       return node
     end
 
-    def monitors(resource_node,inserted)
+    def monitors(resource_node)
 
       monit_array = []
       monit_aux = {}
@@ -64,8 +64,8 @@ module Rbmonitor
       # Calls to add monitors
       update_cluster_config(resource)
       update_service_config(resource)
-      update_manager_config(resource)
-      update_sensor_config(resource, inserted)
+      update_default_config(resource)
+      update_sensor_config(resource)
 
       node.default["redborder"]["monitor"]["config"][:conf] = {
         "debug" => log_level,
@@ -81,6 +81,22 @@ module Rbmonitor
         "kafka_timeout" => 2,
         "kafka_topic" => kafka_topic
       }
+
+      # PROXY CONF
+      "conf" => {
+        "debug" => 0,
+        "threads" => 1,
+        "stdout" => 1,
+        "syslog" => 0,
+        "timeout" => 40,
+        "max_snmp_fails" => 2,
+        "max_kafka_fails" => 2,
+        "sleep_main_thread" => 25,
+        "sleep_worker_thread" => 5,
+        "kafka_broker" => "127.0.0.1",
+        "kafka_topic" => "rb_monitor",
+        "kafka_timeout" => 2
+      },
 
       # Send the hash with all the sensors and the configuration to the template
       return node.default["redborder"]["monitor"]["config"]
