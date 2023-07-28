@@ -8,6 +8,7 @@ action :add do
     config_dir = new_resource.config_dir
     kafka_topic = new_resource.kafka_topic
     hostname = new_resource.name
+    rbname = new_resource.rbname
     hostip = new_resource.hostip
     community = new_resource.community
     log_level = new_resource.log_level
@@ -42,6 +43,7 @@ action :add do
     resource = {}
     resource["kafka_topic"] = kafka_topic
     resource["hostname"] = hostname
+    resource["rbname"] = rbname
     resource["hostip"] = hostip
     resource["community"] = community
     resource["log_level"] = log_level

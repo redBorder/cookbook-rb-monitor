@@ -19,10 +19,8 @@ module Rbmonitor
              "community" => resource["community"],
              "snmp_version" => "2c",
              "monitors" => [
-               { "name" => "latency",
-                 "system" => "nice -n 19 fping -q -s #{next_manager}.node 2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms" },
-               { "name" => "pkts_lost",
-                 "system" => "nice -n 19 fping -p 1 -c 10 #{next_manager}.node 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%" },
+               { "name" => "latency", "system" => "nice -n 19 fping -q -s #{next_manager}.node 2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms" },
+               { "name" => "pkts_lost", "system" => "nice -n 19 fping -p 1 -c 10 #{next_manager}.node 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%" },
                { "name" => "pkts_percent_rcv", "op" => "100 - pkts_lost", "unit" => "%" }
              ]
            }

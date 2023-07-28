@@ -1,7 +1,7 @@
 module Rbmonitor
   module Helpers
     
-    def update_proxy_config(resource)
+    def update_proxy_config(resource, inserted)
       
       #########################
       # PROXY MONITORIZATION
@@ -23,7 +23,7 @@ module Rbmonitor
                 "sensor_ip" => flow_node[ipaddress],
                 "community" => ((!flow_node[snmp_community].nil? and !flow_node[snmp_community].empty? ) ? flow_node[snmp_community] : "redborder" ),
                 "snmp_version" => "2c",
-                "enrichment" => enrich(flow_node) # Enrich function in helper
+                "enrichment" => enrich(flow_node),
                 "monitors" =>
                 [
                   {"name" => "latency"  , "system" => "nice -n 19 fping -q -s = #{flow_node[:ipaddress]}  2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},
@@ -52,11 +52,11 @@ module Rbmonitor
             sensor = {
               "timeout" => 5,
               "sensor_name" => rbname.nil? ? device_node.name : rbname,
-              "sensor_ip" => device_node["ipaddress"], market_uuid
+              "sensor_ip" => device_node["ipaddress"],
               "community" => (device_node["snmp_community"].nil? or device_node["snmp_community"]=="") ? "public" : device_node["snmp_community"].to_s,
               "snmp_version" => (device_node["snmp_version"].nil? or device_node["snmp_version"]=="") ? "2c" : device_node["snmp_version"].to_s,
-              "enrichment" => enrich(device_node) # Enrich function in helper
-              "monitors" => monitors(device_node) # Monitors function in helper
+              "enrichment" => enrich(device_node),
+              "monitors" => monitors(device_node, inserted)
             },
             node.default["redborder"]["monitor"]["config"][:sensors].push(sensor)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + device_node["redborder"]["monitors"].length

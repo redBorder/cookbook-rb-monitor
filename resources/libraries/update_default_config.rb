@@ -7,10 +7,12 @@ module Rbmonitor
       # DEFAULT MONITORIZATION
       ##########################
 
+      # Obtaining configured monitors from Chef Databag
+      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitor_dg={}
+
       # SNMP monitors
       # OID extracted from http://www.debianadmin.com/linux-snmp-oids-for-cpumemory-and-disk-statistics.html
-      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitor_dg={}
-      snmp_monitors = []
+      snmp_monitors = ["/* SNMP MONITORS SECTION - OID extracted from http://www.debianadmin.com/linux-snmp-oids-for-cpumemory-and-disk-statistics.html */"]
       begin
         if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("load_1") 
           snmp_monitors.push({"name": "load_1", "oid": "UCD-SNMP-MIB::laLoad.1", "unit": "%"},)
@@ -92,7 +94,7 @@ module Rbmonitor
 
       # REVISAR LAS RUTAS DE LOS SCRIPTS
       # Proxy monitors
-      proxy_monitors = []
+      proxy_monitors = ["/* PROXY MONITORS SECTION */"]
       if node["redborder"]["is_proxy"]
         begin
           # "monitorping" not found in chef node
@@ -102,51 +104,51 @@ module Rbmonitor
           #  {"name" => "custom_pkts_percent_rcv", "op" => "100 - custom_pkts_lost", "unit" => "%"},
           #end 
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("latency")
-            snmp_monitors.push({"name" => "latency"  , "system" => "nice -n 19 fping -q -s data.= #{node["redborder"]["cdomain"]}  2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},)
+            proxy_monitors.push({"name" => "latency"  , "system" => "nice -n 19 fping -q -s data.= #{node["redborder"]["cdomain"]}  2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("pkts_lost") or monitor_dg["monitors"].include?("pkts_percent_rcv") 
-            snmp_monitors.push({"name" => "pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 data.= #{node["redborder"]["cdomain"]}  2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},)
+            proxy_monitors.push({"name" => "pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 data.= #{node["redborder"]["cdomain"]}  2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},)
             if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("latency")
-              snmp_monitors.push({"name" => "pkts_percent_rcv", "op" => "100 - pkts_lost", "unit" => "%"},)
+              proxy_monitors.push({"name" => "pkts_percent_rcv", "op" => "100 - pkts_lost", "unit" => "%"},)
               node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
             end
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("router_latency")
-            snmp_monitors.push({"name" => "router_latency"  , "system" => "nice -n 19 fping -q -s $(cat /var/lib/dhclient/dhclient-eth0.leases |grep domain-name-servers|tail -n 1 | tr ';' ' '|awk '{print $3}') 2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},)
+            proxy_monitors.push({"name" => "router_latency"  , "system" => "nice -n 19 fping -q -s $(cat /var/lib/dhclient/dhclient-eth0.leases |grep domain-name-servers|tail -n 1 | tr ';' ' '|awk '{print $3}') 2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("router_pkts_lost") or monitor_dg["monitors"].include?("router_pkts_percent_rcv") 
-            snmp_monitors.push({"name" => "router_pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 $(cat /var/lib/dhclient/dhclient-eth0.leases |grep domain-name-servers|tail -n 1 | tr ';' ' '|awk '{print $3}') 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},)
+            proxy_monitors.push({"name" => "router_pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 $(cat /var/lib/dhclient/dhclient-eth0.leases |grep domain-name-servers|tail -n 1 | tr ';' ' '|awk '{print $3}') 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},)
             if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("router_pkts_percent_rcv")
-              snmp_monitors.push({"name" => "router_pkts_percent_rcv", "op" => "100 - router_pkts_lost", "unit" => "%"},)
+              proxy_monitors.push({"name" => "router_pkts_percent_rcv", "op" => "100 - router_pkts_lost", "unit" => "%"},)
               node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
             end
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("dns_latency")
-            snmp_monitors.push({"name" => "dns_latency"  , "system" => "nice -n 19 fping -q -s $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') 2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},)
+            proxy_monitors.push({"name" => "dns_latency"  , "system" => "nice -n 19 fping -q -s $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') 2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("dns_pkts_lost") or monitor_dg["monitors"].include?("dns_pkts_percent_rcv") 
-            snmp_monitors.push({"name" => "dns_pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},)
+            proxy_monitors.push({"name" => "dns_pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},)
             if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("dns_pkts_percent_rcv")
-              snmp_monitors.push({"name" => "dns_pkts_percent_rcv", "op" => "100 - dns_pkts_lost", "unit" => "%"},)
+              proxy_monitors.push({"name" => "dns_pkts_percent_rcv", "op" => "100 - dns_pkts_lost", "unit" => "%"},)
               node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
             end
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("dns_query_lost")
-            snmp_monitors.push({"name" => "dns_query_lost", "system" => "sudo /bin/nice -n 19 /usr/local/nom/bin/dnsperf -d /opt/rb/etc/dnsperf.input -s $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') | grep 'Queries lost' | tr '(' ' ' | tr '%' ' '| awk '{print $4}'", "unit" => "%"},)
+            proxy_monitors.push({"name" => "dns_query_lost", "system" => "sudo /bin/nice -n 19 /usr/local/nom/bin/dnsperf -d /opt/rb/etc/dnsperf.input -s $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') | grep 'Queries lost' | tr '(' ' ' | tr '%' ' '| awk '{print $4}'", "unit" => "%"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("dns_query_latency")
-            snmp_monitors.push({"name" => "dns_query_latency", "system" => "sudo /bin/nice -n 19 /usr/local/nom/bin/dnsperf -d /opt/rb/etc/dnsperf.input -s $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') | grep 'Average Latency' | awk '{print $4}'|sed 's|$|*1000|'|bc" , "unit" => "ms"},)
+            proxy_monitors.push({"name" => "dns_query_latency", "system" => "sudo /bin/nice -n 19 /usr/local/nom/bin/dnsperf -d /opt/rb/etc/dnsperf.input -s $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') | grep 'Average Latency' | awk '{print $4}'|sed 's|$|*1000|'|bc" , "unit" => "ms"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("dhcp_latency")
-            snmp_monitors.push({"name" => "dhcp_latency", "system" => "var=$(date +%s%3N); sudo /bin/nice -n 19 /sbin/busybox udhcpc -fq -i eth0 -n 2 &>/dev/null; echo $(( $(date +%s%3N) - $var))" , "unit" => "ms", "integer" => 1},)
+            proxy_monitors.push({"name" => "dhcp_latency", "system" => "var=$(date +%s%3N); sudo /bin/nice -n 19 /sbin/busybox udhcpc -fq -i eth0 -n 2 &>/dev/null; echo $(( $(date +%s%3N) - $var))" , "unit" => "ms", "integer" => 1},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
         rescue
@@ -154,80 +156,85 @@ module Rbmonitor
         end
       end
 
-      # IPMI monitors
-      ipmi_monitors = []
-      begin
-        if File.exist?("/dev/ipmi0") or File.exist?("/dev/ipmi/0") or File.exist?("/dev/ipmidev/0")
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("system_temp")
-            ipmi_monitors.push({"name": "system_temp",      "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'System Temp'", "unit": "celsius", "integer": 1},)
-            node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
+      if node["redborder"]["is_manager"]
+        # IPMI monitors
+        ipmi_monitors = ["/* IPMI MONITORS SECTION */"]
+        begin
+          if File.exist?("/dev/ipmi0") or File.exist?("/dev/ipmi/0") or File.exist?("/dev/ipmidev/0")
+            if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("system_temp")
+              ipmi_monitors.push({"name": "system_temp",      "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'System Temp'", "unit": "celsius", "integer": 1},)
+              node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
+            end
+            if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("peripheral_temp")
+              ipmi_monitors.push({"name": "peripheral_temp",  "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'Peripheral[ Temp]*'", "unit": "celsius", "integer": 1},)
+              node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
+            end
+            if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("pch_temp")
+              ipmi_monitors.push({"name": "pch_temp",         "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'PCH Temp'", "unit": "celsius", "integer": 1},)
+              node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
+            end
+            if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("fan")
+              ipmi_monitors.push({"name": "fan",              "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix": "_per_instance", "split": ";", "split_op": "mean", "instance_prefix": "fan-", "integer": 1},)
+              node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
+            end
           end
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("peripheral_temp")
-            ipmi_monitors.push({"name": "peripheral_temp",  "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'Peripheral[ Temp]*'", "unit": "celsius", "integer": 1},)
-            node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
-          end
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("pch_temp")
-            ipmi_monitors.push({"name": "pch_temp",         "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Temperature -s 'PCH Temp'", "unit": "celsius", "integer": 1},)
-            node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
-          end
-          if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("fan")
-            ipmi_monitors.push({"name": "fan",              "system": "sudo /usr/lib/redborder/bin/rb_get_sensor.sh -t Fan -a -s 'FAN[ ]*'", "unit": "rpm", "name_split_suffix": "_per_instance", "split": ";", "split_op": "mean", "instance_prefix": "fan-", "integer": 1},)
-            node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
-          end
+        rescue
+          puts "Error, can't access to IPMI, skipping ipmi monitors"
         end
-      rescue
-        puts "Error, can't access to IPMI, skipping ipmi monitors"
-      end
 
-      # Kafka monitors
-      kafka_monitors = []
-      begin
-        if (node.default["redborder"]["services"]["kafka"] == true and  File.exist?"/tmp/kafka")
-          kafka_monitors.push({"name"=> "kafka_disk_cached_pages", "system"=> "find /tmp/kafka/ \\( -size +1 -a -! -type d \\) -exec /usr/local/bin/pcstat -terse {} \\+ | awk -F',' '{s+=$5;c+=$6}END{print c/s*100}'", "unit"=> "%"},)
-          kafka_monitors.push({"name"=> "cache_hits", "system"=> "sudo /usr/lib/redborder/bin/cachestat.sh | awk '{$1=$1};1'", "unit"=> "%"})
-          node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
-        end
-      rescue
-        puts "Error, can't access to Kafka, skipping kafka monitors"
-      end
-
-      #Calculate used memory per service
-      memory_monitors = ["/* MEMORY PER SERVICE */"]
-      begin
-        enabled_services = node.default["redborder"]["services"].map { |service|
-          service[0] if service[1]
-        }
-        enabled_services.delete_if { |service| service == nil }
-        enabled_services.each do |service|
-          service_list = %w[ druid-broker druid-coordinator druid-historical druid-middlemanager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k ]
-          if service_list.include? service
-            serv = service.gsub("-", "_")
-            memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0,
-                                   "system" => "sudo /usr/lib/redborder/bin/rb_mem.sh -n #{service} 2>/dev/null" } )
-            memory_monitors.push({ "name" => "memory_#{serv}", "op" => "100*(memory_total_#{serv})/memory_total", "unit" => "%"} )
-            node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 2
+        # Kafka monitors
+        kafka_monitors = ["/* KAFKA MONITORS SECTION */"]
+        begin
+          if (node.default["redborder"]["services"]["kafka"] == true and  File.exist?"/tmp/kafka")
+            kafka_monitors.push({"name"=> "kafka_disk_cached_pages", "system"=> "find /tmp/kafka/ \\( -size +1 -a -! -type d \\) -exec /usr/local/bin/pcstat -terse {} \\+ | awk -F',' '{s+=$5;c+=$6}END{print c/s*100}'", "unit"=> "%"},)
+            kafka_monitors.push({"name"=> "cache_hits", "system"=> "sudo /usr/lib/redborder/bin/cachestat.sh | awk '{$1=$1};1'", "unit"=> "%"})
+            node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
+        rescue
+          puts "Error, can't access to Kafka, skipping kafka monitors"
         end
-      rescue
-        puts "Can't access to redborder service list, skipping memory services monitorization"
+
+        #Calculate used memory per service
+        memory_monitors = ["/* MEMORY PER SERVICE */"]
+        begin
+          enabled_services = node.default["redborder"]["services"].map { |service|
+            service[0] if service[1]
+          }
+          enabled_services.delete_if { |service| service == nil }
+          enabled_services.each do |service|
+            service_list = %w[ druid-broker druid-coordinator druid-historical druid-middlemanager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k ]
+            if service_list.include? service
+              serv = service.gsub("-", "_")
+              memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0, "system" => "sudo /usr/lib/redborder/bin/rb_mem.sh -n #{service} 2>/dev/null" } )
+              memory_monitors.push({ "name" => "memory_#{serv}", "op" => "100*(memory_total_#{serv})/memory_total", "unit" => "%"} )
+              node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 2
+            end
+          end
+        rescue
+          puts "Can't access to redborder service list, skipping memory services monitorization"
+        end
       end
 
       #Create monitors array
-      default_monitors = ["/* OID extracted from http://www.debianadmin.com/linux-snmp-oids-for-cpumemory-and-disk-statistics.html */"]
+      default_monitors = []
       default_monitors.concat(snmp_monitors)
       default_monitors.concat(proxy_monitors) if node["redborder"]["is_proxy"]
-      default_monitors.concat(ipmi_monitors)
-      default_monitors.concat(kafka_monitors)
-      default_monitors.concat(memory_monitors)
+      if !ipmi_monitors.nil? and !kafka_monitors.nil? and !memory_monitors.nil?
+        default_monitors.concat(ipmi_monitors) if ipmi_monitors.size > 1
+        default_monitors.concat(kafka_monitors) if kafka_monitors.size > 1
+        default_monitors.concat(memory_monitors) if memory_monitors.size > 1
+      end
 
       if node.default["redborder"]["services"]["druid-middlemanager"] == true
         default_monitors.push({ "name" => "running_tasks", "system" => "/usr/lib/redborder/bin/rb_get_tasks.sh -u -n 2>/dev/null", "unit" => "tasks", "integer" => 1})
         node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
       end
 
+      # rbname is the name shown in the web, hostname is the name of the node
+      sensor_name = resource["rbname"].empty? ? resource["hostname"] : resource["rbname"] 
       default_sensor = {
         "timeout" => 5,
-        "sensor_name" => resource["hostname"],
+        "sensor_name" => sensor_name,
         "sensor_ip" => resource["hostip"],
         "community" => resource["community"],
         "snmp_version" => "2c",
