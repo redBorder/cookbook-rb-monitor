@@ -3,12 +3,12 @@ module Rbmonitor
 
     def monitors_ips_ids(resource_node,inserted)
 
-     # IDS/IPS monitor 
-     monit_array = []
-     monit_aux = {}
-     inserted = {}
-     monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")  rescue monitor_dg={}
-     node["redborder"]["snort"]["groups"].each do |id, original_group|
+      # IDS/IPS monitor 
+      monit_array = []
+      monit_aux = {}
+      inserted = {}
+      monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")  rescue monitor_dg={}
+      node["redborder"]["snort"]["groups"].each do |id, original_group|
       group_name = (original_group["name"].nil? ? "none" : original_group["name"].to_s.gsub(' ',''))
       group_id   = (original_group["group_id"].nil? ? "0" : original_group["group_id"].to_s.gsub(' ',''))
       if original_group["cpu_list"] and original_group["segments"] and  original_group["cpu_list"].size>0 and original_group["segments"].size>0 and !original_group["monitors"].nil?
