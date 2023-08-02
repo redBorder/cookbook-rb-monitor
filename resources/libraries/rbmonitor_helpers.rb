@@ -117,7 +117,7 @@ module Rbmonitor
     "kafka_timeout" => 2,
     "kafka_topic" => kafka_topic
         })
-     # end
+      # end
       end
 
       # Send the hash with all the sensors and the configuration to the template

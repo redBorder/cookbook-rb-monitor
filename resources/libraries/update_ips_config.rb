@@ -30,7 +30,6 @@ module Rbmonitor
         return monit_array
     end
 
-
     def update_ips_config(resource, inserted)
 
       # IPS monitor
@@ -47,9 +46,8 @@ module Rbmonitor
       ips_monitors = []
       ips_monitors.concat(ips_monitor)
       ips_monitors.concat(monitors(node,inserted))
-      ips_monitors.concat("/* IDS/IPS monitoring: */")
+      ips_monitors.push("/* IDS/IPS monitoring: */")
       ips_monitors.concat(monitors_ips_ids(node,inserted))
-
 
       ips_sensor = {
         "timeout" => 5,
@@ -61,7 +59,6 @@ module Rbmonitor
         "monitors" => ips_monitors
       }
       node.default["redborder"]["monitor"]["config"][:sensors].push(ips_sensor)
-
     end
   end
 end

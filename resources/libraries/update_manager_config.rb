@@ -31,8 +31,8 @@ module Rbmonitor
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory_buffer")
-             snmp_monitors.push({"name": "memory_buffer", "op": "100*memory_total_buffer/memory_total", "unit": "%"},)
-             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
+            snmp_monitors.push({"name": "memory_buffer", "op": "100*memory_total_buffer/memory_total", "unit": "%"},)
+            node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("memory_cache")
             snmp_monitors.push({"name": "memory_cache", "op": "100*memory_total_cache/memory_total", "unit": "%"},)
@@ -141,7 +141,7 @@ module Rbmonitor
           if service_list.include? service
             serv = service.gsub("-", "_")
             memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0,
-                                   "system" => "sudo /usr/lib/redborder/bin/rb_mem.sh -n #{service} 2>/dev/null" } )
+                                  "system" => "sudo /usr/lib/redborder/bin/rb_mem.sh -n #{service} 2>/dev/null" } )
             memory_monitors.push({ "name" => "memory_#{serv}", "op" => "100*(memory_total_#{serv})/memory_total", "unit" => "%"} )
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 2
           end
