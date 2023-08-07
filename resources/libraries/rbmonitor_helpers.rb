@@ -100,24 +100,23 @@ module Rbmonitor
         "sleep_main_thread" => 25,
         "sleep_worker_thread" => 5,
       }
-      # TODO: IPS cloud
-      #if (!node["redborder"]["cloud"].nil? and (node["redborder"]["cloud"]==1 or node["redborder"]["cloud"]=="1" or node["redborder"]["cloud"]==true or node["redborder"]["cloud"]=="true")) and node["redborder"]["sensor_id"] and node["redborder"]["sensor_id"].to_i>0
-      #  node.default["redborder"]["monitor"]["config"][:conf] = node.default["redborder"]["monitor"]["config"][:conf].merge({
-    #"http_endpoint" => "https://data.#{node["redborder"]["cdomain"]}/rbdata/#{node["redborder"]["sensor_uuid"]}/rb_monitor",
-    #"http_max_total_connections" => 10,
-    #"http_timeout" => 10000,
-    #"http_connttimeout" => 10000,
-    #"http_verbose" => 0,
-    #"rb_http_max_messages" => 1024,
-    #"rb_http_mode" => "deflated"
-    #    })
-    #  else
+        if (!node["redborder"]["cloud"].nil? and (node["redborder"]["cloud"]==1 or node["redborder"]["cloud"]=="1" or node["redborder"]["cloud"]==true or node["redborder"]["cloud"]=="true")) and node["redborder"]["sensor_id"] and node["redborder"]["sensor_id"].to_i>0
         node.default["redborder"]["monitor"]["config"][:conf] = node.default["redborder"]["monitor"]["config"][:conf].merge({
-    "kafka_broker" => "kafka.service",
-    "kafka_timeout" => 2,
-    "kafka_topic" => kafka_topic
-        })
-      # end
+        "http_endpoint" => "https://http2k.service/rbdata/#{node["redborder"]["sensor_uuid"]}/#{kafka_topic}",
+        "http_max_total_connections" => 10,
+        "http_timeout" => 10000,
+        "http_connttimeout" => 10000,
+        "http_verbose" => 0,
+        "rb_http_max_messages" => 1024,
+        "rb_http_mode" => "deflated"
+          })
+        else
+          node.default["redborder"]["monitor"]["config"][:conf] = node.default["redborder"]["monitor"]["config"][:conf].merge({
+        "kafka_broker" => "kafka.service",
+        "kafka_timeout" => 2,
+        "kafka_topic" => kafka_topic
+          })
+        end
       end
 
       # Send the hash with all the sensors and the configuration to the template

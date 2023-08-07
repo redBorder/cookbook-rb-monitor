@@ -2,7 +2,7 @@ module Rbmonitor
   module Helpers
 
     def monitors_ips_ids(resource_node,inserted)
-
+      
       # IDS/IPS monitor 
       monit_array = []
       monit_aux = {}
