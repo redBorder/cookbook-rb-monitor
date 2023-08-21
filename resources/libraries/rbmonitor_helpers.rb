@@ -3,7 +3,7 @@ module Rbmonitor
     
     def enrich(resource_node)
       node={}
-      node[:name] = resource_node["hostname"] if resource_node["hostname"]
+      node[:name] = resource_node["rbname"] if resource_node["rbname"]
       node[:uuid] = resource_node["redborder"]["sensor_uuid"] if resource_node["redborder"] and resource_node["redborder"]["sensor_uuid"]
       node[:service_provider] = resource_node["redborder"]["service_provider"] if resource_node["redborder"] and resource_node["redborder"]["service_provider"]
       node[:service_provider_uuid] = resource_node["redborder"]["service_provider_uuid"] if resource_node["redborder"] and resource_node["redborder"]["service_provider_uuid"]
