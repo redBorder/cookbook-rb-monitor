@@ -28,7 +28,7 @@ module Rbmonitor
       #end
 
       # Logstash
-      pipelines = ["bulkstats-pipeline", "location-pipeline", "meraki-pipeline", "mobility-pipeline", "monitor-pipeline", "netflow-pipeline", "nmsp-pipeline", "radius-pipeline", "rbwindow-pipeline", "redfish-pipeline", "scanner-pipeline", "sflow-pipeline", "social-pipeline", "vault-pipeline"]
+      pipelines = ["bulkstats-pipeline", "location-pipeline", "meraki-pipeline", "mobility-pipeline", "monitor-pipeline", "netflow-pipeline", "nmsp-pipeline", "radius-pipeline", "rbwindow-pipeline", "redfish-pipeline", "scanner-pipeline", "sflow-pipeline", "vault-pipeline"]
       begin
         if node.default["redborder"]["services"]["logstash"] == true
           sensor= {

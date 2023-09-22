@@ -45,6 +45,8 @@ esac
 %doc
 
 %changelog
+* Fri Sep 22 2023 Miguel Negrón <manegron@redborder.com> - 1.0.0-1
+- Remove social
 * Mon Apr 24 2023 Luis J. Blanco <ljblanco@redborder.com> - 0.0.3
 - Scripts added to config file
 * Tue Apr 18 2023 Luis J. Blanco <ljblanco@redborder.com> - 0.0.2
