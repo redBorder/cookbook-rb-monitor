@@ -4,7 +4,7 @@ Cookbook to install and configure redborder rb-monitor
 
 ### Platforms
 
-- Centos 7
+- Rocky Linux 9
 
 ### Chef
 
