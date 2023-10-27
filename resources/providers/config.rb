@@ -16,6 +16,7 @@ action :add do
     flow_nodes = new_resource.flow_nodes
     managers = new_resource.managers
     cluster = new_resource.cluster
+
     yum_package "redborder-monitor" do
       action :upgrade
     end
