@@ -16,7 +16,7 @@ action :add do
     flow_nodes = new_resource.flow_nodes
     managers = new_resource.managers
     cluster = new_resource.cluster
-    yum_package "redborder-monitor" do
+    dnf_package "redborder-monitor" do
       action :upgrade
     end
 
@@ -24,15 +24,17 @@ action :add do
     #Installation of required utilities
     utilities = [ "atop", "bc", "net-snmp-utils", "fping", "pcstat" ]
     utilities.each { |utility|
-      yum_package utility do
+      dnf_package utility do
         action :upgrade
       end
     }
   
-    user user do
-      action :create
+    execute "create_user" do
+      command "/usr/sbin/useradd #{user}"
+      ignore_failure true
+      not_if "getent passwd #{user}"
     end
-    
+ 
     directory config_dir do
       owner "root"
       group "root"
