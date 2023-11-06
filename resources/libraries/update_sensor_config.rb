@@ -27,7 +27,7 @@ module Rbmonitor
                 node.default["redborder"]["monitor"]["config"][:sensors].push("/* Node: #{fnode_name}    Monitors: #{fnode_count}  */")
                 sensor = {
                   "timeout" => 5,
-                  "sensor_name" => fnode["rbname"].nil? ? fnode.name : fnode["rbname"],
+                  "sensor_name" => fnode_name,
                   "sensor_ip" => fnode["ipaddress"],
                   "community" => (fnode["redborder"]["snmp_community"].nil? or fnode["redborder"]["snmp_community"]=="") ? "public" : fnode["redborder"]["snmp_community"].to_s,
                   "snmp_version" => (fnode["redborder"]["snmp_version"].nil? or fnode["redborder"]["snmp_version"]=="") ? "2c" : fnode["redborder"]["snmp_version"].to_s,
@@ -49,7 +49,6 @@ module Rbmonitor
 
       # DEVICES SENSORS
       device_nodes = resource["device_nodes"]
-      manager_list = node["redborder"]["managers_list"]
       begin
         if !device_nodes.nil? and manager_list.length>0
           # Title of section
@@ -64,7 +63,7 @@ module Rbmonitor
                 node.default["redborder"]["monitor"]["config"][:sensors].push("/* Node: #{dnode_name}    Monitors: #{dnode_count}  */")
                 sensor = {
                   "timeout" => 5,
-                  "sensor_name" => dnode["rbname"].nil? ? dnode.name : dnode["rbname"],
+                  "sensor_name" => dnode_name,
                   "sensor_ip" => dnode["ipaddress"],
                   "community" => (dnode["redborder"]["snmp_community"].nil? or dnode["redborder"]["snmp_community"]=="") ? "public" : dnode["redborder"]["snmp_community"].to_s,
                   "snmp_version" => (dnode["redborder"]["snmp_version"].nil? or dnode["redborder"]["snmp_version"]=="") ? "2c" : dnode["redborder"]["snmp_version"].to_s,

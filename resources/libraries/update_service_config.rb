@@ -38,7 +38,7 @@ module Rbmonitor
         if node.default["redborder"]["services"]["logstash"] == true
           sensor= {
             "timeout"=>5,
-            "sensor_name"=> resource["hostname"],
+            "sensor_name"=> resource["rbname"],
             "sensor_ip"=> resource["hostip"],
             "community" => resource["community"],
             "snmp_version"=> "2c",
@@ -58,7 +58,7 @@ module Rbmonitor
           pipelines.each do |pipeline|
             sensor_pipeline= {
               "timeout"=>5,
-              "sensor_name"=> "#{resource["hostname"]}-#{pipeline}",
+              "sensor_name"=> "#{resource["rbname"]}-#{pipeline}",
               "sensor_ip"=> resource["hostip"],
               "community" => resource["community"],
               "snmp_version"=> "2c",

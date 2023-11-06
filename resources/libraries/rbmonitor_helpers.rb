@@ -3,6 +3,7 @@ module Rbmonitor
     
     def enrich(resource_node)
       node={}
+      #node[:name] = resource_node["hostname"].nil? ? resource_node["name"] : resource_node["hostname"]
       node[:name] = resource_node["hostname"] if resource_node["hostname"]
       node[:uuid] = resource_node["redborder"]["sensor_uuid"] if resource_node["redborder"] and resource_node["redborder"]["sensor_uuid"]
       node[:service_provider] = resource_node["redborder"]["service_provider"] if resource_node["redborder"] and resource_node["redborder"]["service_provider"]
@@ -65,7 +66,7 @@ module Rbmonitor
       update_service_config(resource)
       update_cluster_config(resource) if node["redborder"]["is_manager"]
       update_default_config(resource) if node["redborder"]["is_manager"] or node["redborder"]["is_proxy"]
-      #update_proxy_config(resource, inserted) if node["redborder"]["is_proxy"]
+      update_proxy_config(resource, inserted) if node["redborder"]["is_proxy"]
       update_sensor_config(resource, inserted) if node["redborder"]["is_manager"]
 
       update_ips_config(resource, inserted) if node["redborder"]["is_ips"]

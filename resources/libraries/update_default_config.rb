@@ -104,23 +104,23 @@ module Rbmonitor
           #  {"name" => "custom_pkts_percent_rcv", "op" => "100 - custom_pkts_lost", "unit" => "%"},
           #end 
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("latency")
-            proxy_monitors.push({"name" => "latency"  , "system" => "nice -n 19 fping -q -s data.= #{node["redborder"]["cdomain"]}  2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},)
+            proxy_monitors.push({"name" => "latency"  , "system" => "nice -n 19 fping -q -s data.#{node["redborder"]["cdomain"]}  2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("pkts_lost") or monitor_dg["monitors"].include?("pkts_percent_rcv") 
-            proxy_monitors.push({"name" => "pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 data.= #{node["redborder"]["cdomain"]}  2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},)
-            if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("latency")
+            proxy_monitors.push({"name" => "pkts_lost", "system" => "sudo /bin/nice -n 19 fping -p 1 -c 10 data.#{node["redborder"]["cdomain"]}  2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},)
+            if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("pkts_percent_rcv")
               proxy_monitors.push({"name" => "pkts_percent_rcv", "op" => "100 - pkts_lost", "unit" => "%"},)
               node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
             end
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("router_latency")
-            proxy_monitors.push({"name" => "router_latency"  , "system" => "nice -n 19 fping -q -s $(cat /var/lib/dhclient/dhclient-eth0.leases |grep domain-name-servers|tail -n 1 | tr ';' ' '|awk '{print $3}') 2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},)
+            proxy_monitors.push({"name" => "router_latency"  , "system" => "nice -n 19 fping -q -s $(cat /var/lib/dhclient/dhclient.leases |grep domain-name-servers|tail -n 1 | tr ';' ' '|awk '{print $3}') 2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("router_pkts_lost") or monitor_dg["monitors"].include?("router_pkts_percent_rcv") 
-            proxy_monitors.push({"name" => "router_pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 $(cat /var/lib/dhclient/dhclient-eth0.leases |grep domain-name-servers|tail -n 1 | tr ';' ' '|awk '{print $3}') 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},)
+            proxy_monitors.push({"name" => "router_pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 $(cat /var/lib/dhclient/dhclient.leases |grep domain-name-servers|tail -n 1 | tr ';' ' '|awk '{print $3}') 2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},)
             if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("router_pkts_percent_rcv")
               proxy_monitors.push({"name" => "router_pkts_percent_rcv", "op" => "100 - router_pkts_lost", "unit" => "%"},)
               node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
@@ -140,15 +140,15 @@ module Rbmonitor
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("dns_query_lost")
-            proxy_monitors.push({"name" => "dns_query_lost", "system" => "sudo /bin/nice -n 19 /usr/local/nom/bin/dnsperf -d /opt/rb/etc/dnsperf.input -s $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') | grep 'Queries lost' | tr '(' ' ' | tr '%' ' '| awk '{print $4}'", "unit" => "%"},)
+            proxy_monitors.push({"name" => "dns_query_lost", "system" => "sudo /bin/nice -n 19 /usr/bin/dnsperf -d /etc/dnsperf.input -s $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') | grep 'Queries lost' | tr '(' ' ' | tr '%' ' '| awk '{print $4}'", "unit" => "%"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("dns_query_latency")
-            proxy_monitors.push({"name" => "dns_query_latency", "system" => "sudo /bin/nice -n 19 /usr/local/nom/bin/dnsperf -d /opt/rb/etc/dnsperf.input -s $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') | grep 'Average Latency' | awk '{print $4}'|sed 's|$|*1000|'|bc" , "unit" => "ms"},)
+            proxy_monitors.push({"name" => "dns_query_latency", "system" => "sudo /bin/nice -n 19 /usr/bin/dnsperf -d /etc/dnsperf.input -s $(grep nameserver /etc/resolv.conf |tail -n 1 |awk '{print $2}') | grep 'Average Latency' | awk '{print $4}'|sed 's|$|*1000|'|bc" , "unit" => "ms"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("dhcp_latency")
-            proxy_monitors.push({"name" => "dhcp_latency", "system" => "var=$(date +%s%3N); sudo /bin/nice -n 19 /sbin/busybox udhcpc -fq -i eth0 -n 2 &>/dev/null; echo $(( $(date +%s%3N) - $var))" , "unit" => "ms", "integer" => 1},)
+            proxy_monitors.push({"name" => "dhcp_latency", "system" => "var=$(date +%s%3N); sudo /bin/nice -n 19 dhclient -v ens192 &>/dev/null; echo $(( $(date +%s%3N) - $var))" , "unit" => "ms", "integer" => 1},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
         rescue

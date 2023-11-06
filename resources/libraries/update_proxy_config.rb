@@ -7,32 +7,34 @@ module Rbmonitor
       # PROXY MONITORIZATION
       #########################
       
-      # INICIO
+      # FLOW SENSORS
+      flow_nodes = resource["flow_nodes"]
       begin
-        if node["redborder"] and node["redborder"]["sensors_mapping"] and node["redborder"]["sensors_mapping"]["flow"] and node["redborder"]["sensors_mapping"]["flow"].size>0 
-          flow_ips = []
-          node["redborder"]["sensors_mapping"]["flow"].each do |rbname, flow_node|
-            fnode_name = fnode["rbname"].nil? ? fnode.name : fnode["rbname"]
-            fnode_count = fnode["redborder"]["monitors"].size
-            if !flow_node["ipaddress"].nil? and !flow_ips.include?flow_node["ipaddress"] and !flow_node["sensor_uuid"].nil? 
+        if !flow_nodes.nil?
+          # Title of section
+          node.default["redborder"]["monitor"]["config"][:sensors].push("/* PROXY FLOW SENSORS */")
+          flow_nodes.each do |fnode|
+            if fnode["redborder"]["monitors"].size > 0 and !fnode["ipaddress"].nil? and !fnode["redborder"]["sensor_uuid"].nil? 
+              fnode_name = fnode["rbname"].nil? ? fnode.name : fnode["rbname"]
+              fnode_count = fnode["redborder"]["monitors"].size
               # Title of sensor
               node.default["redborder"]["monitor"]["config"][:sensors].push("/* Node: #{fnode_name}    Monitors: #{fnode_count}  */")
               sensor = {
                 "timeout" => 5,
-                "sensor_name" => rbname.nil? ? fnode.name : rbname,
-                "sensor_ip" => flow_node[ipaddress],
-                "community" => ((!flow_node[snmp_community].nil? and !flow_node[snmp_community].empty? ) ? flow_node[snmp_community] : "redborder" ),
+                "sensor_name" => fnode_name,
+                "sensor_ip" => fnode["ipaddress"],
+                "community" => ((fnode["snmp_community"].nil? and fnode["snmp_community"].empty? ) ? "public" : fnode["snmp_community"]),
                 "snmp_version" => "2c",
-                "enrichment" => enrich(flow_node),
-                "monitors" =>
+                "enrichment" => enrich(fnode),
+                "monitors" => monitors(fnode,inserted).concat(
                 [
-                  {"name" => "latency"  , "system" => "nice -n 19 fping -q -s = #{flow_node[:ipaddress]}  2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},
-                  {"name" => "pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 = #{flow_node[:ipaddress]}  2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},
+                  {"name" => "latency"  , "system" => "nice -n 19 fping -q -s = #{fnode[:ipaddress]}  2>&1| grep 'avg round trip time'|awk '{print $1}'", "unit" => "ms"},
+                  {"name" => "pkts_lost", "system" => "sudo /bin/nice -n 19 /usr/sbin/fping -p 1 -c 10 = #{fnode[:ipaddress]}  2>&1 | tail -n 1 | awk '{print $5}' | sed 's/%.*$//' | tr '/' ' ' | awk '{print $3}'", "unit" => "%"},
                   {"name" => "pkts_percent_rcv", "op" => "100 - pkts_lost", "unit" => "%"}
-                ]
-              },
+                ])
+              }
               node.default["redborder"]["monitor"]["config"][:sensors].push(sensor)
-              node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 3
+              node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 3 + fnode["redborder"]["monitors"].length
             end
           end
         end
@@ -40,26 +42,30 @@ module Rbmonitor
         puts "Can't access to flow sensors, skipping..."
       end
 
-      #-----------------------------------------------------
-      
+      # DEVICES SENSORS
+      device_nodes = resource["device_nodes"]
       begin
-        if node["redborder"] and node["redborder"]["sensors_mapping"] and node["redborder"]["sensors_mapping"]["device"] and node["redborder"]["sensors_mapping"]["device"].size>0
-          node["redborder"]["sensors_mapping"]["device"].each do |rbname, device_node|
-            dnode_name = fnode["rbname"].nil? ? fnode.name : fnode["rbname"]
-            dnode_count = fnode["redborder"]["monitors"].size
-            # Title of sensor
-            node.default["redborder"]["monitor"]["config"][:sensors].push("/* Node: #{dnode_name}    Monitors: #{dnode_count}  */")
-            sensor = {
-              "timeout" => 5,
-              "sensor_name" => rbname.nil? ? device_node.name : rbname,
-              "sensor_ip" => device_node["ipaddress"],
-              "community" => (device_node["snmp_community"].nil? or device_node["snmp_community"]=="") ? "public" : device_node["snmp_community"].to_s,
-              "snmp_version" => (device_node["snmp_version"].nil? or device_node["snmp_version"]=="") ? "2c" : device_node["snmp_version"].to_s,
-              "enrichment" => enrich(device_node),
-              "monitors" => monitors(device_node, inserted)
-            },
-            node.default["redborder"]["monitor"]["config"][:sensors].push(sensor)
-            node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + device_node["redborder"]["monitors"].length
+        if !device_nodes.nil?
+          # Title of section
+          node.default["redborder"]["monitor"]["config"][:sensors].push("/* DEVICE SENSORS */")
+          device_nodes.each do |dnode|
+            if dnode["redborder"]["monitors"].size > 0 and !dnode["ipaddress"].nil? and !dnode["redborder"]["sensor_uuid"].nil?
+              dnode_name = dnode["rbname"].nil? ? dnode.name : dnode["rbname"]
+              dnode_count = dnode["redborder"]["monitors"].size
+              # Title of sensor
+              node.default["redborder"]["monitor"]["config"][:sensors].push("/* Node: #{dnode_name}    Monitors: #{dnode_count}  */")
+              sensor = {
+                "timeout" => 5,
+                "sensor_name" => dnode_name,
+                "sensor_ip" => dnode["ipaddress"],
+                "community" => (dnode["snmp_community"].nil? or dnode["snmp_community"]=="") ? "public" : dnode["snmp_community"].to_s,
+                "snmp_version" => (dnode["snmp_version"].nil? or dnode["snmp_version"]=="") ? "2c" : dnode["snmp_version"].to_s,
+                "enrichment" => enrich(dnode),
+                "monitors" => monitors(dnode, inserted)
+              }
+              node.default["redborder"]["monitor"]["config"][:sensors].push(sensor)
+              node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + dnode["redborder"]["monitors"].length
+            end
           end
         end
       rescue
