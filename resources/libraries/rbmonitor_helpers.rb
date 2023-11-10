@@ -75,8 +75,8 @@ module Rbmonitor
         "timeout" => 40,
         "max_snmp_fails" => 2,
         "max_kafka_fails" => 2,
-        "sleep_main_thread" => 50,
-        "sleep_worker_thread" => 5,
+        "sleep_main" => 50,
+        "sleep_worker" => 5,
         "kafka_broker" => "kafka.service",
         "kafka_timeout" => 2,
         "kafka_topic" => kafka_topic
