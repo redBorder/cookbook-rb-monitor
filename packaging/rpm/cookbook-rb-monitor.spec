@@ -45,11 +45,9 @@ esac
 %doc
 
 %changelog
-* Fri Sep 22 2023 Miguel Negrón <manegron@redborder.com> - 1.0.0-1
-- Remove social
-* Mon Apr 24 2023 Luis J. Blanco <ljblanco@redborder.com> - 0.0.3
-- Scripts added to config file
-* Tue Apr 18 2023 Luis J. Blanco <ljblanco@redborder.com> - 0.0.2
+* Mon Dec 18 2023 Miguel Álvarez <malvarez@redborder.com> - 0.0.3-1
+- Remove logstash from monitor stats
+* Tue Apr 18 2023 Luis J. Blanco <ljblanco@redborder.com> - 0.0.2-1
 - clean templates with helpers
 * Tue Oct 18 2016 Alberto Rodríguez <arodriguez@redborder.com> - 0.0.1-1
 - first spec version
