@@ -76,11 +76,27 @@ module Rbmonitor
         "max_snmp_fails" => 2,
         "max_kafka_fails" => 2,
         "sleep_main" => 50,
-        "sleep_worker" => 5,
-        "kafka_broker" => "kafka.service",
-        "kafka_timeout" => 2,
-        "kafka_topic" => kafka_topic
+        "sleep_worker" => 5
       }
+      
+      if (!node["redborder"]["cloud"].nil? and (node["redborder"]["cloud"]==1 or node["redborder"]["cloud"]=="1" or node["redborder"]["cloud"]==true or node["redborder"]["cloud"]=="true")) and node["redborder"]["sensor_id"] and node["redborder"]["sensor_id"].to_i>0
+        node.default["redborder"]["monitor"]["config"][:conf].merge!(
+          "http_endpoint" => "https://http2k.service/rbdata/" + node["redborder"]["sensor_uuid"] + "/rb_monitor",
+          "http_max_total_connections" => 10,
+          "http_timeout" => 10000,
+          "http_connttimeout" => 10000,
+          "http_verbose" => 0,
+          "rb_http_max_messages" => 1024,
+          "http_insecure" => true,
+          "rb_http_mode" => "deflated"
+        )
+      else
+        node.default["redborder"]["monitor"]["config"][:conf].merge!(
+         "kafka_broker" => "kafka.service",
+         "kafka_timeout" => 2,
+         "kafka_topic" => kafka_topic
+        )
+      end
 
       # Send the hash with all the sensors and the configuration to the template
       return node.default["redborder"]["monitor"]["config"]
