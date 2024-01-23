@@ -45,6 +45,8 @@ esac
 %doc
 
 %changelog
+* Wed Jan 23 2024 David Vanhoucke <dvanhoucke@redborder.com> - 0.0.4-1
+- Fix redborder-monitor
 * Mon Dec 18 2023 Miguel Álvarez <malvarez@redborder.com> - 0.0.3-1
 - Remove logstash from monitor stats
 * Tue Apr 18 2023 Luis J. Blanco <ljblanco@redborder.com> - 0.0.2-1
