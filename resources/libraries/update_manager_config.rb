@@ -1,6 +1,6 @@
 module Rbmonitor
   module Helpers
-  
+
     def update_manager_config(resource)
 
       ##########################
@@ -12,9 +12,9 @@ module Rbmonitor
       monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitor_dg={}
       snmp_monitors = []
       begin
-        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("load_1") 
+        if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("load_1")
           snmp_monitors.push({"name": "load_1", "oid": "UCD-SNMP-MIB::laLoad.1", "unit": "%"},)
-          node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1 
+          node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
         end
         if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("cpu")
           snmp_monitors.push({"name": "cpu_idle", "oid": "UCD-SNMP-MIB::ssCpuIdle.0", "send": 0, "unit": "%"},)
@@ -79,21 +79,21 @@ module Rbmonitor
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw_load")
             snmp_monitors.push({"name": "disk_raw_load", "system": "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-2 ' | awk '{print $7}'", "unit": "%"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
-          end 
+          end
         elsif File.exist?("/dev/mapper/vg_rbdata-lv_raw")
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("disk_raw")
             snmp_monitors.push({"name": "disk_raw", "oid": "UCD-SNMP-MIB::dskPercent.2", "unit": "%"},)
             node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 1
           end
         end
-      rescue 
+      rescue
         puts "Error, can't access to SNMP monitors, skipping snmp monitors"
       end
 
       # IPMI monitors
       monitor_dg = Chef::DataBagItem.load("rBglobal", "monitors")   rescue monitor_dg={}
       ipmi_monitors = []
-      
+
       begin
         if File.exist?("/dev/ipmi0") or File.exist?("/dev/ipmi/0") or File.exist?("/dev/ipmidev/0")
           if monitor_dg["monitors"].nil? or monitor_dg["monitors"].include?("system_temp")
@@ -132,12 +132,9 @@ module Rbmonitor
       #Calculate used memory per service
       memory_monitors = ["/* MEMORY PER SERVICE */"]
       begin
-        enabled_services = node.default["redborder"]["services"].map { |service|
-          service[0] if service[1]
-        }
-        enabled_services.delete_if { |service| service == nil }
+        enabled_services = node.default["redborder"]["services"].select { |k, v| v == true}.keys
+        service_list = %w[ druid-broker druid-coordinator druid-historical druid-middlemanager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k ]
         enabled_services.each do |service|
-          service_list = %w[ druid-broker druid-coordinator druid-historical druid-middlemanager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k ]
           if service_list.include? service
             serv = service.gsub("-", "_")
             memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0,
@@ -174,6 +171,6 @@ module Rbmonitor
       node.default["redborder"]["monitor"]["config"][:sensors].push(manager_sensor)
 
     end
-    
+
   end
 end
