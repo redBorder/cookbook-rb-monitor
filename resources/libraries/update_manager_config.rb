@@ -132,16 +132,27 @@ module Rbmonitor
       #Calculate used memory per service
       memory_monitors = ["/* MEMORY PER SERVICE */"]
       begin
-        enabled_services = node.default["redborder"]["services"].select { |k, v| v == true}.keys
-        service_list = %w[ druid-broker druid-coordinator druid-historical druid-middlemanager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k ]
-        enabled_services.each do |service|
-          if service_list.include? service
-            serv = service.gsub("-", "_")
-            memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0,
-                                   "system" => "sudo /usr/lib/redborder/bin/rb_mem.sh -n #{service} 2>/dev/null" } )
-            memory_monitors.push({ "name" => "memory_#{serv}", "op" => "100*(memory_total_#{serv})/memory_total", "unit" => "%"} )
-            node.default[:redborder][:monitor][:count] = node.default[:redborder][:monitor][:count] + 2
+        enabled_services = node.default["redborder"]["services"]
+        service_list = %w[druid-broker druid-coordinator druid-historical druid-middlemanager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k]
+
+        #In case user modifies a service
+        overwritten_services = node.attributes["redborder"]["services"]
+        overwritten_services.each do |service, value|
+          if value == false
+            enabled_services.delete(service)
+          elsif value == true && service_list.include?(service)
+            enabled_services[service] = true
           end
+        end
+
+        enabled_services.select! { |k,v| v==true && service_list.include?(k) }
+
+        enabled_services.keys.each do |service|
+          serv = service.gsub("-", "_")
+          memory_monitors.push({ "name" => "memory_total_#{serv}", "unit" => "kB", "integer" => 1, "send" => 0,
+                           "system" => "sudo /usr/lib/redborder/bin/rb_mem.sh -n #{service} 2>/dev/null" })
+          memory_monitors.push({ "name" => "memory_#{serv}", "op" => "100*(memory_total_#{serv})/memory_total", "unit" => "%" })
+          node.default[:redborder][:monitor][:count] += 2
         end
       rescue
         puts "Can't access to redborder service list, skipping memory services monitorization"
