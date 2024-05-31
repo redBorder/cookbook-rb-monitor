@@ -1,6 +1,17 @@
-# Rbmonitor Cookbook
+# cookbook-rb-monitor
+[![Build Status][build-shield]][build-url]
+[![Linters][linters-shield]][linters-url]
+[![License][license-shield]][license-url]
 
-Cookbook to install and configure redborder rb-monitor
+<!-- Badges -->
+[build-shield]: https://github.com/redBorder/cookbook-rb-monitor/actions/workflows/rpm.yml/badge.svg?branch=master
+[build-url]: https://github.com/redBorder/cookbook-rb-monitor/actions/workflows/rpm.yml?query=branch%3Amaster
+[linters-shield]: https://github.com/redBorder/cookbook-rb-monitor/actions/workflows/lint.yml/badge.svg?event=push
+[linters-url]: https://github.com/redBorder/cookbook-rb-monitor/actions/workflows/lint.yml
+[license-shield]: https://img.shields.io/badge/license-AGPLv3-blue.svg
+[license-url]: https://github.com/cookbook-rb-monitor/blob/HEAD/LICENSE
+
+Chef cookbook to install and configure redborder rb-monitor
 
 ### Platforms
 
@@ -8,7 +19,7 @@ Cookbook to install and configure redborder rb-monitor
 
 ### Chef
 
-- Chef 12.0 or later
+- Chef 15.7.0 or later
 
 ## Contributing
 
@@ -20,7 +31,5 @@ Cookbook to install and configure redborder rb-monitor
 6. Submit a Pull Request using Github
 
 ## License
-GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007
 
-## Authors
-Authors: Enrique Jimenez <ejimenez@redborder.com>, Alberto Rodríguez <arodriguez@redborder.com>
+GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007
