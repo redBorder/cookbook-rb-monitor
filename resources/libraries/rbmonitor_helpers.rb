@@ -88,7 +88,7 @@ module Rbmonitor
           "http_verbose" => 0,
           "rb_http_max_messages" => 1024,
           "http_insecure" => true,
-          "rb_http_mode" => "deflated"
+          "rb_http_mode" => "normal"
         )
       else
         node.default["redborder"]["monitor"]["config"][:conf].merge!(
