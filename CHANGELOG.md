@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.0.6
+
+  - JuanSheba
+    - [fafc747] Change rb_http_mode to Normal
+
 ## 0.0.5
 
   - nilsver
