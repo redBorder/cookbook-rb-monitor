@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.0.7
+
+  - nilsver
+    - [deeb69f] deep copy of service hash
+
 ## 0.0.6
 
   - JuanSheba
