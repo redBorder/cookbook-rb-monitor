@@ -132,8 +132,10 @@ module Rbmonitor
       #Calculate used memory per service
       memory_monitors = ["/* MEMORY PER SERVICE */"]
       begin
-        enabled_services = node.default["redborder"]["services"]
-        service_list = %w[druid-broker druid-coordinator druid-historical druid-middlemanager druid-overlord druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k]
+        original_services = node.default['redborder']['services']
+        enabled_services = JSON.parse(original_services.to_json)
+        service_list = %w[druid-broker druid-coordinator druid-historical druid-middlemanager druid-overlord
+                          druid-realtime http2k kafka n2klocd redborder-nmsp redborder-postgresql webui zookeeper f2k]
 
         #In case user modifies a service
         overwritten_services = node.attributes["redborder"]["services"]
