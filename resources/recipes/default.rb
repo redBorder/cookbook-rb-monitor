@@ -1,14 +1,10 @@
-#
-# Cookbook Name:: rbmonitor
+# Cookbook:: rbmonitor
 # Recipe:: default
-#
-# redborder
-#
-#  AFFERO GENERAL PUBLIC LICENSE, Version 3
-#
+# Copyright:: 2024, redborder
+# License:: Affero General Public License, Version 3
 
-rbmonitor_config "config" do
-  name node["hostname"]
+rbmonitor_config 'config' do
+  name node['hostname']
   log_level 7
   action :add
 end
