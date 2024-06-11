@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.0.8
+
+  - Miguel Negrón
+    - [7e61f36] Improvement/fix lint (#18)
+
 ## 0.0.7
 
   - nilsver
