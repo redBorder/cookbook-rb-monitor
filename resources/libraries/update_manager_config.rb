@@ -195,7 +195,7 @@ module Rbmonitor
 
       manager_sensor = {
         'timeout' => 5,
-        'sensor_name' => sensor_name['hostname'],
+        'sensor_name' => sensor_name,
         'sensor_ip' => resource['hostip'],
         'community' => resource['community'],
         'snmp_version' => '2c',
