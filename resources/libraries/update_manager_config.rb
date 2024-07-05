@@ -187,14 +187,21 @@ module Rbmonitor
         node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + 1
       end
 
+      sensor_name = if node['redborder']['ips'] && !node['redborder']['cloud']
+                      node['rbname']
+                    else
+                      resource['hostname']
+                    end
+
       manager_sensor = {
-        'timeout': 5,
-        'sensor_name': resource['hostname'],
-        'sensor_ip': resource['hostip'],
-        'community': resource['community'],
-        'snmp_version': '2c',
-        'monitors': manager_monitors,
+        'timeout' => 5,
+        'sensor_name' => sensor_name['hostname'],
+        'sensor_ip' => resource['hostip'],
+        'community' => resource['community'],
+        'snmp_version' => '2c',
+        'monitors' => manager_monitors,
       }
+
       # Finally, add manager sensor to sensors array in config
       node.default['redborder']['monitor']['config']['sensors'].push(manager_sensor)
     end
