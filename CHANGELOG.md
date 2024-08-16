@@ -1,7 +1,7 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
-## 0.0.9
+## 0.1.0
 
   - Miguel Alvarez
     - [d89a1db] Fix sensor_name array invalid
