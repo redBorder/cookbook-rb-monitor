@@ -1,6 +1,12 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.1.0
+
+  - Miguel Alvarez
+    - [d89a1db] Fix sensor_name array invalid
+    - [c47a755] Fix sensor name for monitor
+
 ## 0.0.8
 
   - Miguel Negrón
