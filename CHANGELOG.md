@@ -3,9 +3,6 @@ cookbook-rb-monitor CHANGELOG
 
 ## 0.0.9
 
-  - Luis Blanco
-    - [58d9c3d] Merge pull request #20 from redBorder/feature/17731_ips_ssh_version
-    - [cf3a487] Merge branch 'master' into feature/17731_ips_ssh_version
   - Miguel Alvarez
     - [d89a1db] Fix sensor_name array invalid
     - [c47a755] Fix sensor name for monitor
