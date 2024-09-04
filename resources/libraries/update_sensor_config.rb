@@ -47,7 +47,7 @@ module Rbmonitor
       device_nodes = resource['device_nodes']
       manager_list = node['redborder']['managers_list']
       begin
-        if device_nodes && !manager_list.length.empty?
+        if device_nodes && !manager_list.empty?
           # Title of section
           node.default['redborder']['monitor']['config']['sensors'].push('/* DEVICE SENSORS */')
           manager_index = manager_list.find_index(resource['hostname'])
