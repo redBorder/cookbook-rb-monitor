@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.0.10
+
+  - Miguel Negrón
+    - [c827e71] Merge pull request #22 from redBorder/bugfix/18354_device_sensors_not_in_config
+
 ## 0.1.0
 
   - Miguel Alvarez
