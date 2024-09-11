@@ -14,7 +14,7 @@ module Rbmonitor
 
           flow_nodes.each do |fnode|
             next unless !fnode['redborder']['monitors'].empty? && fnode['ipaddress']
-            
+
             fnode_name = fnode['rbname'] || fnode.name
             fnode_count = fnode['redborder']['monitors']&.size || 0
 
@@ -51,7 +51,7 @@ module Rbmonitor
 
           device_nodes.each do |dnode|
             next unless !dnode['redborder']['monitors'].empty? && dnode['ipaddress']
-            
+
             dnode_name = dnode['rbname'] || dnode.name
             dnode_count = dnode['redborder']['monitors'].size
 
