@@ -130,7 +130,13 @@ module Rbmonitor
       update_cluster_config(resource)
       update_service_config(resource)
       update_manager_config(resource)
-      update_sensor_config(resource)
+      # Probably not super reliable but it's what I have atm
+      puts "PEDRO RESOURCE #{resource}"
+      if resource['managers'] && !resource['managers'].empty?
+        update_sensor_config(resource)
+      else
+        update_sensor_proxyips(resource)
+      end
 
       node.default['redborder']['monitor']['config']['conf'] = {
         'debug': log_level,
