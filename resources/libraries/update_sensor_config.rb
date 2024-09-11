@@ -9,17 +9,20 @@ module Rbmonitor
       # FLOW SENSORS
       flow_nodes = resource['flow_nodes']
       manager_list = resource['managers']
+
       begin
         if flow_nodes && !manager_list.empty?
           # Title of section
           node.default['redborder']['monitor']['config']['sensors'].push('/* REMOTE SENSORS, MONITORED ON ANY MANAGER */')
           manager_index = manager_list.find_index(resource['hostname'])
+
           flow_nodes.each_with_index do |fnode, findex|
             next unless !fnode['redborder']['monitors'].empty? && fnode['ipaddress'] && fnode['redborder']['parent_id'].nil?
 
             fnode_name = fnode['rbname'].nil? ? fnode.name : fnode['rbname']
             fnode_count = fnode['redborder']['monitors'].size
-            if findex % manager_list.length == manager_index && fnode['redborder'] && !fnode['redborder']['monitors'].size.empty?
+
+            if findex % manager_list.length == manager_index && fnode['redborder'] && !fnode['redborder']['monitors'].empty?
               # Title of sensor
               node.default['redborder']['monitor']['config']['sensors'].push("/* Node: #{fnode_name}    Monitors: #{fnode_count}  */")
               sensor = {
@@ -46,16 +49,19 @@ module Rbmonitor
       # DEVICES SENSORS
       device_nodes = resource['device_nodes']
       manager_list = node['redborder']['managers_list']
+      
       begin
         if device_nodes && !manager_list.empty?
           # Title of section
           node.default['redborder']['monitor']['config']['sensors'].push('/* DEVICE SENSORS */')
           manager_index = manager_list.find_index(resource['hostname'])
+
           device_nodes.each_with_index do |dnode, dindex|
             next unless !dnode['redborder']['monitors'].empty? && dnode['ipaddress'] && dnode['redborder']['parent_id'].nil?
 
             dnode_name = dnode['rbname'].nil? ? dnode.name : dnode['rbname']
             dnode_count = dnode['redborder']['monitors'].size
+
             if dindex % manager_list.length == manager_index && dnode['redborder'] && !dnode['redborder']['monitors'].empty?
               # Title of sensor
               node.default['redborder']['monitor']['config']['sensors'].push("/* Node: #{dnode_name}    Monitors: #{dnode_count}  */")
