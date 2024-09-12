@@ -49,7 +49,7 @@ module Rbmonitor
       # DEVICES SENSORS
       device_nodes = resource['device_nodes']
       manager_list = node['redborder']['managers_list']
-      
+
       begin
         if device_nodes && !manager_list.empty?
           # Title of section
