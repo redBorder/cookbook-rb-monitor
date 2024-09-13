@@ -1,12 +1,18 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.1.0
+
+  - Daniel Castro
+    - [1af6337] fix add flow sensors to manager
+    - [2994471] add function to register sensors in proxy
+
 ## 0.0.10
 
   - Miguel Negrón
     - [c827e71] Merge pull request #22 from redBorder/bugfix/18354_device_sensors_not_in_config
 
-## 0.1.0
+## 0.9.0
 
   - Miguel Alvarez
     - [d89a1db] Fix sensor_name array invalid
@@ -40,4 +46,3 @@ cookbook-rb-monitor CHANGELOG
 ## 0.0.1
 -----
 - [ejimenez] - Initial skel
-

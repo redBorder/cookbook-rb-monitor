@@ -1,38 +1,33 @@
 module Rbmonitor
   module Helpers
-    def update_sensor_config(resource)
-      # SENSOR MONITORIZATION
+    def update_sensor_proxyips(resource)
+      # SENSOR MONITORIZATION FOR PROXY AND IPS
 
-      # cluster = resource["cluster"]
-      # managers_index = cluster.map{|x| x.name}.index(node.name)
-
+      # TODO: Refactor
       # FLOW SENSORS
       flow_nodes = resource['flow_nodes']
-      manager_list = resource['managers']
-
       begin
-        if flow_nodes && !manager_list.empty?
+        if flow_nodes
           # Title of section
-          node.default['redborder']['monitor']['config']['sensors'].push('/* REMOTE SENSORS, MONITORED ON ANY MANAGER */')
-          manager_index = manager_list.find_index(resource['hostname'])
+          node.default['redborder']['monitor']['config']['sensors'].push('/* REMOTE SENSORS */')
 
-          flow_nodes.each_with_index do |fnode, findex|
-            next unless !fnode['redborder']['monitors'].empty? && fnode['ipaddress'] && fnode['redborder']['parent_id'].nil?
+          flow_nodes.each do |fnode|
+            next unless !fnode['redborder']['monitors'].empty? && fnode['ipaddress']
 
-            fnode_name = fnode['rbname'].nil? ? fnode.name : fnode['rbname']
-            fnode_count = fnode['redborder']['monitors'].size
+            fnode_name = fnode['rbname'] || fnode.name
+            fnode_count = fnode['redborder']['monitors']&.size || 0
 
-            if findex % manager_list.length == manager_index && fnode['redborder'] && !fnode['redborder']['monitors'].empty?
+            if fnode['redborder'] && !fnode['redborder']['monitors'].empty?
               # Title of sensor
               node.default['redborder']['monitor']['config']['sensors'].push("/* Node: #{fnode_name}    Monitors: #{fnode_count}  */")
               sensor = {
                 'timeout': 5,
-                'sensor_name': fnode['rbname'].nil? ? fnode.name : fnode['rbname'],
+                'sensor_name': fnode_name,
                 'sensor_ip': fnode['ipaddress'],
                 'community': (fnode['redborder']['snmp_community'].nil? || fnode['redborder']['snmp_community'] == '') ? 'public' : fnode['redborder']['snmp_community'].to_s,
                 'snmp_version' => (fnode['redborder']['snmp_version'].nil? || fnode['redborder']['snmp_version'] == '') ? '2c' : fnode['redborder']['snmp_version'].to_s,
-                'enrichment' => enrich(flow_nodes[findex]),
-                'monitors' => monitors(flow_nodes[findex]),
+                'enrichment' => enrich(fnode),
+                'monitors' => monitors(fnode),
               }
               node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + fnode['redborder']['monitors'].length
               node.default['redborder']['monitor']['config']['sensors'].push(sensor)
@@ -48,31 +43,28 @@ module Rbmonitor
 
       # DEVICES SENSORS
       device_nodes = resource['device_nodes']
-      manager_list = node['redborder']['managers_list']
-
       begin
-        if device_nodes && !manager_list.empty?
+        if device_nodes
           # Title of section
           node.default['redborder']['monitor']['config']['sensors'].push('/* DEVICE SENSORS */')
-          manager_index = manager_list.find_index(resource['hostname'])
 
-          device_nodes.each_with_index do |dnode, dindex|
-            next unless !dnode['redborder']['monitors'].empty? && dnode['ipaddress'] && dnode['redborder']['parent_id'].nil?
+          device_nodes.each do |dnode|
+            next unless !dnode['redborder']['monitors'].empty? && dnode['ipaddress']
 
-            dnode_name = dnode['rbname'].nil? ? dnode.name : dnode['rbname']
+            dnode_name = dnode['rbname'] || dnode.name
             dnode_count = dnode['redborder']['monitors'].size
 
-            if dindex % manager_list.length == manager_index && dnode['redborder'] && !dnode['redborder']['monitors'].empty?
+            if dnode['redborder'] && !dnode['redborder']['monitors'].empty?
               # Title of sensor
               node.default['redborder']['monitor']['config']['sensors'].push("/* Node: #{dnode_name}    Monitors: #{dnode_count}  */")
               sensor = {
                 'timeout': 5,
-                'sensor_name': dnode['rbname'].nil? ? dnode.name : dnode['rbname'],
+                'sensor_name': dnode_name,
                 'sensor_ip': dnode['ipaddress'],
                 'community': (dnode['redborder']['snmp_community'].nil? || dnode['redborder']['snmp_community'] == '') ? 'public' : dnode['redborder']['snmp_community'].to_s,
                 'snmp_version': (dnode['redborder']['snmp_version'].nil? || dnode['redborder']['snmp_version'] == '') ? '2c' : dnode['redborder']['snmp_version'].to_s,
-                'enrichment' => enrich(device_nodes[dindex]),
-                'monitors' => monitors(device_nodes[dindex]),
+                'enrichment' => enrich(dnode),
+                'monitors' => monitors(dnode),
               }
               node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + dnode['redborder']['monitors'].length
               node.default['redborder']['monitor']['config']['sensors'].push(sensor)
