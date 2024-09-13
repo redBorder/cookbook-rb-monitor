@@ -2,9 +2,8 @@ module Rbmonitor
   module Helpers
     def update_sensor_proxyips(resource)
       # SENSOR MONITORIZATION FOR PROXY AND IPS
-      # This is a BAD solution but I'm on a time constraint
-      # So please, merge this file with update_sensor_config.rb when possible
 
+      # TODO: Refactor
       # FLOW SENSORS
       flow_nodes = resource['flow_nodes']
       begin

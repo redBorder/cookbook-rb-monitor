@@ -130,7 +130,7 @@ module Rbmonitor
       update_cluster_config(resource)
       update_service_config(resource)
       update_manager_config(resource)
-      # Probably not super reliable but it's what I have atm
+
       if resource['managers'] && !resource['managers'].empty?
         update_sensor_config(resource)
       else
