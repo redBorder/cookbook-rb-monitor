@@ -23,6 +23,9 @@ chmod -R 0755 %{buildroot}/var/chef/cookbooks/rb-monitor
 install -D -m 0644 README.md %{buildroot}/var/chef/cookbooks/rb-monitor/README.md
 
 %pre
+if [ -d /var/chef/cookbooks/rb-monitor ]; then
+    rm -rf /var/chef/cookbooks/rb-monitor
+fi
 
 %post
 case "$1" in
@@ -36,6 +39,12 @@ case "$1" in
   ;;
 esac
 
+%postun
+# Deletes directory when uninstall the package
+if [ "$1" = 0 ] && [ -d /var/chef/cookbooks/rb-monitor ]; then
+  rm -rf /var/chef/cookbooks/rb-monitor
+fi
+
 %files
 %defattr(0755,root,root)
 /var/chef/cookbooks/rb-monitor
@@ -45,11 +54,17 @@ esac
 %doc
 
 %changelog
-* Wed Jan 23 2024 David Vanhoucke <dvanhoucke@redborder.com> - 0.0.4-1
+* Thu Oct 10 2024 Miguel Negrón <manegron@redborder.com>
+- Add pre and postun
+
+* Wed Jan 23 2024 David Vanhoucke <dvanhoucke@redborder.com>
 - Fix redborder-monitor
-* Mon Dec 18 2023 Miguel Álvarez <malvarez@redborder.com> - 0.0.3-1
+
+* Mon Dec 18 2023 Miguel Álvarez <malvarez@redborder.com>
 - Remove logstash from monitor stats
-* Tue Apr 18 2023 Luis J. Blanco <ljblanco@redborder.com> - 0.0.2-1
+
+* Tue Apr 18 2023 Luis J. Blanco <ljblanco@redborder.com>
 - clean templates with helpers
-* Tue Oct 18 2016 Alberto Rodríguez <arodriguez@redborder.com> - 0.0.1-1
+
+* Tue Oct 18 2016 Alberto Rodríguez <arodriguez@redborder.com>
 - first spec version
