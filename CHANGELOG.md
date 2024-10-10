@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.1.1
+
+  - Miguel Negrón
+    - [65a6f7a] Add pre and postun to clean the cookbook
+
 ## 0.1.0
 
   - Daniel Castro
