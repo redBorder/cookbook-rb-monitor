@@ -151,8 +151,7 @@ module Rbmonitor
         enabled_services = JSON.parse(original_services.to_json)
         service_list = %w(druid-broker druid-coordinator druid-historical
                           druid-middlemanager druid-overlord druid-realtime
-                          http2k kafka n2klocd redborder-nmsp
-                          redborder-postgresql webui zookeeper f2k)
+                          http2k kafka n2klocd redborder-nmsp webui zookeeper f2k)
 
         # In case user modifies a service
         overwritten_services = node.attributes['redborder']['services']
