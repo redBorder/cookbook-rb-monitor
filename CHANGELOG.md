@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.2.0
+
+  - Miguel Negrón
+    - [8a15ff7] Update defautl community string
+
 ## 0.1.1
 
   - Miguel Negrón
