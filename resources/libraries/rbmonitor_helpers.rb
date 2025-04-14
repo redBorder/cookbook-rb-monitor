@@ -156,7 +156,7 @@ module Rbmonitor
            node['redborder']['cloud'] == 'true')) &&
          node['redborder']['sensor_id'] && node['redborder']['sensor_id'].to_i > 0
         node.default['redborder']['monitor']['config']['conf'].merge!(
-          'http_endpoint': "https://http2k.#{node['redborder']['cdomain']}/rbdata/#{node['redborder']['sensor_uuid']}/rb_monitor",
+          'http_endpoint': 'https://http2k.service/rbdata/' + node['redborder']['sensor_uuid'] + '/rb_monitor',
           'http_max_total_connections': 10,
           'http_timeout': 10000,
           'http_connttimeout': 10000,
