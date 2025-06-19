@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.3.1
+
+  - Rafael Gomez
+    - [fdc3909] Update http_endpoint format to use cdomain for dynamic URL construction
+
 ## 0.2.0
 
   - Miguel Negrón
