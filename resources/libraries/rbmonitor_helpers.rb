@@ -70,7 +70,7 @@ module Rbmonitor
         end
       end
 
-      result.strip.squeeze("")
+      result.strip.squeeze('')
     end
 
     def monitors(resource_node)
