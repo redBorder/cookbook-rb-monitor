@@ -56,23 +56,21 @@ module Rbmonitor
         '%snmp_priv_password'  => ['-X', redborder['snmp_priv_password']],
         '%sensor_ip'           => [nil, redborder['ipaddress']],
       }
-    
+
       result = command.dup
-    
+
       replacements.each do |placeholder, (flag, value)|
         if value.nil? || value.strip.empty?
           if flag
-            # Elimina flag + placeholder y espacio extra
             result.gsub!(/#{Regexp.escape(flag)}\s*#{Regexp.escape(placeholder)}/, '')
           end
-          # Si no tiene flag (ej: sensor_ip), limpia solo el placeholder
           result.gsub!(placeholder, '')
         else
           result.gsub!(placeholder, value)
         end
       end
-    
-      result.strip.squeeze(" ")
+
+      result.strip.squeeze("")
     end
 
     def monitors(resource_node)
