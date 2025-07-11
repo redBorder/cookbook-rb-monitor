@@ -46,6 +46,35 @@ module Rbmonitor
       enrichment
     end
 
+    def clean_snmp_command(command, redborder)
+      replacements = {
+        '%snmp_username'       => ['-u', redborder['snmp_username']],
+        '%snmp_security_level' => ['-l', redborder['snmp_security_level']],
+        '%snmp_auth_protocol'  => ['-a', redborder['snmp_auth_protocol']],
+        '%snmp_auth_password'  => ['-A', redborder['snmp_auth_password']],
+        '%snmp_priv_protocol'  => ['-x', redborder['snmp_priv_protocol']],
+        '%snmp_priv_password'  => ['-X', redborder['snmp_priv_password']],
+        '%sensor_ip'           => [nil, redborder['ipaddress']],
+      }
+    
+      result = command.dup
+    
+      replacements.each do |placeholder, (flag, value)|
+        if value.nil? || value.strip.empty?
+          if flag
+            # Elimina flag + placeholder y espacio extra
+            result.gsub!(/#{Regexp.escape(flag)}\s*#{Regexp.escape(placeholder)}/, '')
+          end
+          # Si no tiene flag (ej: sensor_ip), limpia solo el placeholder
+          result.gsub!(placeholder, '')
+        else
+          result.gsub!(placeholder, value)
+        end
+      end
+    
+      result.strip.squeeze(" ")
+    end
+
     def monitors(resource_node)
       return {} unless resource_node && resource_node['redborder'] && resource_node['redborder']['monitors']
 
@@ -88,6 +117,10 @@ module Rbmonitor
               snmp_community = 'public'
             end
             monitor[k].to_s.gsub!('%snmp_community', snmp_community)
+
+            if monitor[k].is_a?(String) && monitor[k].include?('%snmp_')
+              monitor[k] = clean_snmp_command(monitor[k], resource_node['redborder'])
+            end
 
             telnet_user = resource_node['redborder']['telnet_user'] || ''
             monitor[k].to_s.gsub!('%telnet_user', telnet_user)
