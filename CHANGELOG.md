@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.4.0
+
+  - Rafael Gomez
+    - [d5cda80] Removing redborder-postgresql service
+
 ## 0.3.1
 
   - Rafael Gomez
