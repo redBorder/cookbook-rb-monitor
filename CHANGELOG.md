@@ -1,6 +1,18 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.5.0
+
+  - ljblancoredborder
+    - [32c7d8a] bump version
+    - [9772c7f] Merge pull request #35 from redBorder/feature/#18850_add_internal_virtual_ips
+  - Luis Blanco
+    - [9772c7f] Merge pull request #35 from redBorder/feature/#18850_add_internal_virtual_ips
+  - Rafael Gomez
+    - [0ef6f49] Merge branch 'master' into feature/#18887_add_internal_virtual_ips
+    - [7bddb1e] Merge branch 'master' into feature/#18887_add_internal_virtual_ips
+    - [d5cda80] Removing redborder-postgresql service
+
 ## 0.4.0
 
   - Luis Blanco
