@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.5.0
+
+  - vimesa
+    - [1db563d] Add SNMP v3
+
 ## 0.4.0
 
   - Rafael Gomez
