@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.5.1
+
+  - jnavarrorb
+    - [b063ea0] Remove executable permissions on non-executable files
+
 ## 0.5.0
 
   - vimesa
