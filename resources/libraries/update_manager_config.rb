@@ -186,7 +186,7 @@ module Rbmonitor
         node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + 1
       end
 
-      sensor_name = if node['redborder']['ips'] && !node['redborder']['cloud']
+      sensor_name = if node['redborder']['is_proxy'] || (node['redborder']['ips'] && !node['redborder']['cloud'])
                       node['rbname']
                     else
                       resource['hostname']
