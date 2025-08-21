@@ -186,15 +186,9 @@ module Rbmonitor
         node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + 1
       end
 
-      sensor_name = if node['redborder']['ips'] && !node['redborder']['cloud']
-                      node['rbname']
-                    else
-                      resource['hostname']
-                    end
-
       manager_sensor = {
         'timeout' => 5,
-        'sensor_name' => sensor_name,
+        'sensor_name' => node['rbname'] || resource['hostname'],
         'sensor_ip' => resource['hostip'],
         'community' => resource['community'],
         'snmp_version' => '2c',
