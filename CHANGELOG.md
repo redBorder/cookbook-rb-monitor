@@ -1,7 +1,7 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
-## 1.0.1
+## 0.5.2
 
   - José Navarro en redBorder
     - [7c30950] bugfix/22360_Monitor_shows_hostname_instead_of_sensor_name_with_redborder-proxy_sensor (#41)
