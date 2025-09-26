@@ -15,6 +15,7 @@ action :add do
 
     device_nodes = new_resource.device_nodes
     flow_nodes = new_resource.flow_nodes
+    proxy_flow_nodes = new_resource.proxy_flow_nodes
     managers = new_resource.managers
     cluster = new_resource.cluster
 
@@ -50,7 +51,8 @@ action :add do
     resource['community'] = community
     resource['log_level'] = log_level
     resource['device_nodes'] = device_nodes
-    resource['flow_nodes'] = flow_nodes
+    resource['flow_nodes'] = flow_nodes # In proxy, flow_nodes turned to not be nodes
+    resource['proxy_flow_nodes'] = proxy_flow_nodes
     resource['managers'] = managers
     resource['cluster'] = cluster
 
