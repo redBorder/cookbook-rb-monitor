@@ -22,26 +22,31 @@ module Rbmonitor
             fnode_name = fnode['rbname'].nil? ? fnode.name : fnode['rbname']
             fnode_count = fnode['redborder']['monitors'].size
 
-            if findex % manager_list.length == manager_index && fnode['redborder'] && !fnode['redborder']['monitors'].empty?
+            # disperse sensors to each manager
+            if (findex % manager_list.length) == manager_index && fnode['redborder'] && !fnode['redborder']['monitors'].empty?
               # Title of sensor
               node.default['redborder']['monitor']['config']['sensors'].push("/* Node: #{fnode_name}    Monitors: #{fnode_count}  */")
-              sensor = {
-                'timeout': 5,
-                'sensor_name': fnode['rbname'].nil? ? fnode.name : fnode['rbname'],
-                'sensor_ip': fnode['ipaddress'],
-                'community': (fnode['redborder']['snmp_community'].nil? || fnode['redborder']['snmp_community'] == '') ? 'public' : fnode['redborder']['snmp_community'].to_s,
-                'snmp_version': (fnode['redborder']['snmp_version'].nil? || fnode['redborder']['snmp_version'] == '') ? '2c' : fnode['redborder']['snmp_version'].to_s,
-                'snmp_username': (fnode['redborder']['snmp_username'].nil? || fnode['redborder']['snmp_username'] == '') ? '' : fnode['redborder']['snmp_username'].to_s,
-                'snmp_security_level': (fnode['redborder']['snmp_security_level'].nil? || fnode['redborder']['snmp_security_level'] == '') ? '' : fnode['redborder']['snmp_security_level'].to_s,
-                'snmp_auth_protocol': (fnode['redborder']['snmp_auth_protocol'].nil? || fnode['redborder']['snmp_auth_protocol'] == '') ? '' : fnode['redborder']['snmp_auth_protocol'].to_s,
-                'snmp_auth_password': (fnode['redborder']['snmp_auth_password'].nil? || fnode['redborder']['snmp_auth_password'] == '') ? '' : fnode['redborder']['snmp_auth_password'].to_s,
-                'snmp_priv_protocol': (fnode['redborder']['snmp_priv_protocol'].nil? || fnode['redborder']['snmp_priv_protocol'] == '') ? '' : fnode['redborder']['snmp_priv_protocol'].to_s,
-                'snmp_priv_password': (fnode['redborder']['snmp_priv_password'].nil? || fnode['redborder']['snmp_priv_password'] == '') ? '' : fnode['redborder']['snmp_priv_password'].to_s,
-                'enrichment' => enrich(flow_nodes[findex]),
-                'monitors' => monitors(flow_nodes[findex]),
-              }
-              node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + fnode['redborder']['monitors'].length
-              node.default['redborder']['monitor']['config']['sensors'].push(sensor)
+              begin
+                sensor = {
+                  'timeout': 5,
+                  'sensor_name': fnode['rbname'].nil? ? fnode.name : fnode['rbname'],
+                  'sensor_ip': fnode['ipaddress'],
+                  'community': (fnode['redborder']['snmp_community'].nil? || fnode['redborder']['snmp_community'] == '') ? 'public' : fnode['redborder']['snmp_community'].to_s,
+                  'snmp_version': (fnode['redborder']['snmp_version'].nil? || fnode['redborder']['snmp_version'] == '') ? '2c' : fnode['redborder']['snmp_version'].to_s,
+                  'snmp_username': (fnode['redborder']['snmp_username'].nil? || fnode['redborder']['snmp_username'] == '') ? '' : fnode['redborder']['snmp_username'].to_s,
+                  'snmp_security_level': (fnode['redborder']['snmp_security_level'].nil? || fnode['redborder']['snmp_security_level'] == '') ? '' : fnode['redborder']['snmp_security_level'].to_s,
+                  'snmp_auth_protocol': (fnode['redborder']['snmp_auth_protocol'].nil? || fnode['redborder']['snmp_auth_protocol'] == '') ? '' : fnode['redborder']['snmp_auth_protocol'].to_s,
+                  'snmp_auth_password': (fnode['redborder']['snmp_auth_password'].nil? || fnode['redborder']['snmp_auth_password'] == '') ? '' : fnode['redborder']['snmp_auth_password'].to_s,
+                  'snmp_priv_protocol': (fnode['redborder']['snmp_priv_protocol'].nil? || fnode['redborder']['snmp_priv_protocol'] == '') ? '' : fnode['redborder']['snmp_priv_protocol'].to_s,
+                  'snmp_priv_password': (fnode['redborder']['snmp_priv_password'].nil? || fnode['redborder']['snmp_priv_password'] == '') ? '' : fnode['redborder']['snmp_priv_password'].to_s,
+                  'enrichment': enrich(fnode),
+                  'monitors': monitors(fnode),
+                }
+                node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + fnode['redborder']['monitors'].length
+                node.default['redborder']['monitor']['config']['sensors'].push(sensor)
+              rescue
+                node.default['redborder']['monitor']['config']['sensors'].push('*/Error pushing sensor with monitors*/')
+              end
             else
               # The sensor is registered in another manager
               node.default['redborder']['monitor']['config']['sensors'].push("/* Node: #{fnode_name}    Monitors: #{fnode_count} (not in this manager) */")
