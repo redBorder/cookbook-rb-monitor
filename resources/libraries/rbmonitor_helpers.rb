@@ -98,12 +98,12 @@ module Rbmonitor
         # decide send_flag for this monitor
         send_flag = resource_node['redborder']['monitors'].any? do |m|
           m = m.to_hash
-          m['name'] == name && (m['send'].nil? || %w[1 true].include?(m['send'].to_s))
+          m['name'] == name && (m['send'].nil? || %w(1 true).include?(m['send'].to_s))
         end
         send_flag = send_flag ? 1 : 0
 
         # reorder keys: ensure 'name' first, 'send' last
-        keys = monitor.keys.map(&:to_s).sort - %w[name send]
+        keys = monitor.keys.map(&:to_s).sort - %w(name send)
         keys.unshift('name')
         keys << 'send'
 
