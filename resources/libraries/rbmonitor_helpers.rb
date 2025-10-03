@@ -74,11 +74,11 @@ module Rbmonitor
     end
 
     def monitors(resource_node)
-      return {} unless resource_node && resource_node['redborder'] && resource_node['redborder']['monitors']
+      return [] unless resource_node && resource_node['redborder'] && resource_node['redborder']['monitors']
 
       monitors = []
       inserted = {}
-      send = 0
+      send_flag = 0
 
       begin
         data_bag = data_bag_item('rBglobal', 'monitors')
@@ -88,65 +88,60 @@ module Rbmonitor
 
       resource_node['redborder']['monitors'].each do |resource_node_monitor|
         monitor = resource_node_monitor.to_hash
+        name    = monitor['name']
+        next unless name
 
-        if inserted[monitor['name']].nil? && (data_bag['monitors'].nil? || data_bag['monitors'].include?(monitor['name']))
-          resource_node['redborder']['monitors'].each do |resource_node_m|
-            m = resource_node_m.to_hash
+        # skip if already inserted or not allowed by data_bag
+        monitors_list = data_bag['monitors']
+        next unless inserted[name].nil? && (monitors_list.nil? || monitors_list.include?(name))
 
-            next unless m['name'] == monitor['name']
+        # decide send_flag for this monitor
+        send_flag = resource_node['redborder']['monitors'].any? do |m|
+          m = m.to_hash
+          m['name'] == name && (m['send'].nil? || %w[1 true].include?(m['send'].to_s))
+        end
+        send_flag = send_flag ? 1 : 0
 
-            next unless m['send'].nil? || m['send'] == '1' || m['send'] == 1 || m['send'] == true
+        # reorder keys: ensure 'name' first, 'send' last
+        keys = monitor.keys.map(&:to_s).sort - %w[name send]
+        keys.unshift('name')
+        keys << 'send'
 
-            send = 1
+        keys.each do |k|
+          val = monitor[k].to_s.dup
+
+          val.gsub!('%sensor_ip', resource_node['ipaddress'].to_s)
+
+          snmp_community = resource_node['redborder']['snmp_community']
+          snmp_community = 'public' if snmp_community.nil? || snmp_community.empty?
+          val.gsub!('%snmp_community', snmp_community)
+
+          if monitor[k].is_a?(String) && monitor[k].include?('%snmp_')
+            val = clean_snmp_command(val, resource_node['redborder'])
           end
 
-          keys = monitor.keys.sort
-          keys.delete('name')
-          keys.delete('send')
-          keys.insert(0, 'name')
-          last_key = keys.length
-          keys.insert(last_key, 'send')
+          val.gsub!('%telnet_user', resource_node['redborder']['telnet_user'].to_s)
+          val.gsub!('%telnet_password', resource_node['redborder']['telnet_password'].to_s)
 
-          keys.each_with_index do |k, _i|
-            monitor[k].to_s.gsub!('%sensor_ip', resource_node['ipaddress'])
+          protocol      = resource_node['redborder']['protocol']
+          rest_user     = resource_node['redborder']['rest_api_user']
+          rest_password = resource_node['redborder']['rest_api_password']
+          ip            = resource_node['redborder']['ipaddress']
 
-            snmp_community = resource_node['redborder']['snmp_community']
-            if !snmp_community || snmp_community.empty?
-              snmp_community = 'public'
-            end
-            monitor[k].to_s.gsub!('%snmp_community', snmp_community)
-
-            if monitor[k].is_a?(String) && monitor[k].include?('%snmp_')
-              monitor[k] = clean_snmp_command(monitor[k], resource_node['redborder'])
-            end
-
-            telnet_user = resource_node['redborder']['telnet_user'] || ''
-            monitor[k].to_s.gsub!('%telnet_user', telnet_user)
-
-            telnet_password = resource_node['redborder']['telnet_password'] || ''
-            monitor[k].to_s.gsub!('%telnet_password', telnet_password)
-
-            if resource_node['redborder']['protocol'] == 'IPMI' &&
-               resource_node['redborder']['rest_api_user'] &&
-               resource_node['redborder']['rest_api_password']
-              rb_get_sensor = "rb_get_sensor.sh -i #{resource_node['redborder']['ipaddress']} -u #{resource_node['redborder']['rest_api_user']} -p #{resource_node['redborder']['rest_api_password']}"
-              monitor[k].to_s.gsub!('rb_get_sensor.sh', rb_get_sensor)
-            end
-
-            if resource_node['redborder']['protocol'] == 'Redfish' &&
-               resource_node['redborder']['rest_api_user'] &&
-               resource_node['redborder']['rest_api_password']
-              rb_get_redfish = "rb_get_redfish.sh -i #{resource_node['redborder']['ipaddress']} -u #{resource_node['redborder']['rest_api_user']} -p #{resource_node['redborder']['rest_api_password']}"
-              monitor[k].to_s.gsub!('rb_get_redfish.sh', rb_get_redfish)
-            end
-
-            monitor['send'] = send
+          if protocol == 'IPMI' && rest_user && rest_password
+            cmd = "rb_get_sensor.sh -i #{ip} -u #{rest_user} -p #{rest_password}"
+            val.gsub!('rb_get_sensor.sh', cmd)
+          elsif protocol == 'Redfish' && rest_user && rest_password
+            cmd = "rb_get_redfish.sh -i #{ip} -u #{rest_user} -p #{rest_password}"
+            val.gsub!('rb_get_redfish.sh', cmd)
           end
 
-          inserted[monitor['name']] = true
+          monitor[k] = val
         end
 
-        monitors.push(monitor)
+        monitor['send'] = send_flag
+        inserted[name]  = true
+        monitors << monitor
       end
 
       monitors
