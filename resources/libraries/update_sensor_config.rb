@@ -1,9 +1,5 @@
 module Rbmonitor
   module Helpers
-    def debug(str="/* Break point reached*/")#_line
-      node.default['redborder']['monitor']['config']['sensors'].push(str)
-    end
-
     def update_sensor_config(resource)
       # SENSOR MONITORIZATION
 
@@ -13,7 +9,6 @@ module Rbmonitor
       # FLOW SENSORS
       flow_nodes = resource['flow_nodes']
       manager_list = resource['managers']
-      
 
       begin
         if flow_nodes && !manager_list.empty?
@@ -31,44 +26,6 @@ module Rbmonitor
             if (findex % manager_list.length) == manager_index && fnode['redborder'] && !fnode['redborder']['monitors'].empty?
               # Title of sensor
               node.default['redborder']['monitor']['config']['sensors'].push("/* Node: #{fnode_name}    Monitors: #{fnode_count}  */")
-
-              # Variables SNMP y sensor
-              timeout = 5
-              sensor_name = fnode['rbname'].nil? ? fnode.name : fnode['rbname'] rescue 'Error'
-              sensor_ip = fnode['ipaddress'] rescue 'Error'
-
-              community = fnode.dig('redborder', 'snmp_community').to_s rescue 'Error'
-              community = 'public' if community.empty? rescue 'Error'
-
-              snmp_version = fnode.dig('redborder', 'snmp_version').to_s rescue 'Error'
-              snmp_version = '2c' if snmp_version.empty? rescue 'Error'
-
-              snmp_username = fnode.dig('redborder', 'snmp_username').to_s rescue 'Error'
-              snmp_security_level = fnode.dig('redborder', 'snmp_security_level').to_s rescue 'Error'
-              snmp_auth_protocol = fnode.dig('redborder', 'snmp_auth_protocol').to_s rescue 'Error'
-              snmp_auth_password = fnode.dig('redborder', 'snmp_auth_password').to_s rescue 'Error'
-              snmp_priv_protocol = fnode.dig('redborder', 'snmp_priv_protocol').to_s rescue 'Error'
-              snmp_priv_password = fnode.dig('redborder', 'snmp_priv_password').to_s rescue 'Error'
-
-              # Enrichment y monitors
-              enrichment_value = enrich(fnode) rescue 'Error'
-              monitors_value = monitors(fnode) rescue 'Error'
-
-              # Debug de todos los parámetros
-              debug "/*timeout = #{timeout}*/"
-              debug "/*sensor_name = #{sensor_name}*/"
-              debug "/*sensor_ip = #{sensor_ip}*/"
-              debug "/*community = #{community}*/"
-              debug "/*snmp_version = #{snmp_version}*/"
-              debug "/*snmp_username = #{snmp_username}*/"
-              debug "/*snmp_security_level = #{snmp_security_level}*/"
-              debug "/*snmp_auth_protocol = #{snmp_auth_protocol}*/"
-              debug "/*snmp_auth_password = #{snmp_auth_password}*/"
-              debug "/*snmp_priv_protocol = #{snmp_priv_protocol}*/"
-              debug "/*snmp_priv_password = #{snmp_priv_password}*/"
-              debug "/*enrichment = #{enrichment_value}*/"
-              debug "/*monitors = #{monitors_value}*/"
-
               begin
                 sensor = {
                   'timeout': 5,
