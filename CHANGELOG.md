@@ -1,6 +1,12 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.5.3
+
+  - ljblancoredborder
+    - [8013b94] exception control made on an autorefactor of failing function
+    - [2c92b83] adding proxy_nodes which is actually an array of nodes
+
 ## 0.5.2
 
   - José Navarro en redBorder
