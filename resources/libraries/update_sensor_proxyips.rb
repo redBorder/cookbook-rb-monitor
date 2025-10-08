@@ -5,7 +5,7 @@ module Rbmonitor
 
       # TODO: Refactor
       # FLOW SENSORS
-      flow_nodes = resource['flow_nodes']
+      flow_nodes = resource['proxy_flow_nodes']
       begin
         if flow_nodes
           # Title of section
