@@ -19,9 +19,6 @@ module Rbmonitor
           proxy_node['redborder'] && proxy_node['redborder']['sensor_id']
         end.compact
 
-        Chef::Log.info("Proxy array: #{proxy_nodes_array.map(&:name)}")
-        Chef::Log.info("Proxies ids: #{proxy_sensor_ids}")
-
         # Manager procesa sensores normales, excluyendo hijos de proxies
         update_sensor_group(
           title: "/* #{type.to_s.upcase} SENSORS (MANAGER) */",
@@ -49,10 +46,6 @@ module Rbmonitor
     # ======================================================
     def update_sensor_group(title:, nodes:, manager_list:, hostname:, exclude_parent_ids:)
       return if nodes.nil? || nodes.empty?
-
-      Chef::Log.info("Nodes: #{nodes}")
-      Chef::Log.info("Parents: #{exclude_parent_ids}")
-
 
       node.default['redborder']['monitor']['config']['sensors'] << title
       manager_index = manager_list && hostname ? manager_list.find_index(hostname) : nil
