@@ -7,31 +7,32 @@ module Rbmonitor
     }.freeze
 
     # ======================================================
-    # Método principal
+    # Main
     # ======================================================
     def update_sensors(resource)
-      NODE_TYPES.each do |type, (normal_key, proxy_key)|
-        # IDs de sensores proxy para filtrar hijos
+      node.default['redborder']['monitor']['config']['sensors'] << "/* Remote sensors */"
+
+      NODE_TYPES.each do |type, (manager_key, proxy_key)|
+        # Proxy sensor IDs to filter children
         proxy_nodes_array = resource["proxy_nodes"] || []
 
-        # Solo sacamos los sensor_id de cada proxy
         proxy_sensor_ids = proxy_nodes_array.map do |proxy_node|
           proxy_node['redborder'] && proxy_node['redborder']['sensor_id']
         end.compact
 
-        # Manager procesa sensores normales, excluyendo hijos de proxies
+        # Manager sensors
         update_sensor_group(
-          title: "/* #{type.to_s.upcase} SENSORS (MANAGER) */",
-          nodes: resource[normal_key],
+          title: "/* #{type.to_s.upcase} SENSORS */",
+          nodes: resource[manager_key],
           manager_list: resource['managers'],
           hostname: resource['hostname'],
           exclude_parent_ids: proxy_sensor_ids
         )
 
-        # Proxy SOLO procesa sensores proxy
+        # Proxy sensors
         if node['redborder']['is_proxy']
           update_sensor_group(
-            title: "/* #{type.to_s.upcase} SENSORS (PROXY) */",
+            title: "/* #{type.to_s.upcase} SENSORS */",
             nodes: resource[proxy_key],
             manager_list: nil,
             hostname: nil,
@@ -42,7 +43,7 @@ module Rbmonitor
     end
 
     # ======================================================
-    # Motor genérico
+    # Generic engine
     # ======================================================
     def update_sensor_group(title:, nodes:, manager_list:, hostname:, exclude_parent_ids:)
       return if nodes.nil? || nodes.empty?
@@ -55,9 +56,9 @@ module Rbmonitor
         next unless snode['redborder']['monitors'] && !snode['redborder']['monitors'].empty?
         next unless snode['ipaddress']
 
-        # Saltar nodos que son hijos de proxies
+        # Exclude nodes that are children of proxies
         parent_id = snode.dig('redborder','parent_id')
-        next if parent_id && exclude_parent_ids&.include?(parent_id)
+        next if exclude_parent_ids&.include?(parent_id)
 
         name  = snode['rbname'] || snode.name
         count = snode['redborder']['monitors'].size
@@ -76,7 +77,7 @@ module Rbmonitor
     end
 
     # ======================================================
-    # Construcción del hash de sensor
+    # Sensor hash construction
     # ======================================================
     def build_sensor_hash(snode)
       {
