@@ -1,8 +1,8 @@
 module Rbmonitor
   module Helpers
     NODE_TYPES = {
-      device: %w[device_nodes proxy_device_nodes],
-      flow:   %w[flow_nodes proxy_flow_nodes],
+      device: %w(device_nodes proxy_device_nodes),
+      flow:   %w(flow_nodes proxy_flow_nodes),
     }.freeze
 
     # ======================================================
