@@ -62,7 +62,12 @@ module Rbmonitor
         name  = snode['rbname'] || snode.name
         count = snode['redborder']['monitors'].size
 
-        handle = manager_list && manager_index ? index % manager_list.length == manager_index : true
+        handle =
+          if manager_list && manager_index
+            index % manager_list.length == manager_index
+          else
+            true
+          end
 
         if handle
           node.default['redborder']['monitor']['config']['sensors'] << "/* Node: #{name}    Monitors: #{count} */"
