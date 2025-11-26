@@ -16,7 +16,9 @@ action :add do
     device_nodes = new_resource.device_nodes
     flow_nodes = new_resource.flow_nodes
     proxy_flow_nodes = new_resource.proxy_flow_nodes
+    proxy_device_nodes = new_resource.proxy_device_nodes
     managers = new_resource.managers
+    proxy_nodes = new_resource.proxy_nodes
     cluster = new_resource.cluster
 
     dnf_package 'redborder-monitor' do
@@ -53,7 +55,9 @@ action :add do
     resource['device_nodes'] = device_nodes
     resource['flow_nodes'] = flow_nodes # In proxy, flow_nodes turned to not be nodes
     resource['proxy_flow_nodes'] = proxy_flow_nodes
+    resource['proxy_device_nodes'] = proxy_device_nodes
     resource['managers'] = managers
+    resource['proxy_nodes'] = proxy_nodes
     resource['cluster'] = cluster
 
     template "#{config_dir}/config.json" do

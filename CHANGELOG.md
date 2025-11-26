@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.5.4
+
+  - vimesa
+    - [08da7e8] Fixed distribution of sensors in a cluster
+
 ## 0.5.3
 
   - ljblancoredborder

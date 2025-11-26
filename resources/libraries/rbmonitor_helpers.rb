@@ -156,12 +156,7 @@ module Rbmonitor
       update_cluster_config(resource)
       update_service_config(resource)
       update_manager_config(resource)
-
-      if resource['managers'] && !resource['managers'].empty?
-        update_sensor_config(resource)
-      else
-        update_sensor_proxyips(resource)
-      end
+      update_sensors(resource)
 
       node.default['redborder']['monitor']['config']['conf'] = {
         'debug': log_level,
