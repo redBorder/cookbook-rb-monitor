@@ -60,17 +60,18 @@ action :add do
     resource['proxy_nodes'] = proxy_nodes
     resource['cluster'] = cluster
 
-    template "#{config_dir}/config.json" do
-      source 'config.json.erb'
-      owner 'root'
-      group 'root'
-      cookbook 'rbmonitor'
-      mode '0644'
-      retries 2
-      variables(resource: resource)
-      helpers Rbmonitor::Helpers
-      notifies :restart, 'service[redborder-monitor]', :delayed
-    end
+    # /etc/redborder-monitor/config.json
+    # template "#{config_dir}/config.json" do
+    #   source 'config.json.erb'
+    #   owner 'root'
+    #   group 'root'
+    #   cookbook 'rbmonitor'
+    #   mode '0644'
+    #   retries 2
+    #   variables(resource: resource)
+    #   helpers Rbmonitor::Helpers
+    #   notifies :restart, 'service[redborder-monitor]', :delayed
+    # end
 
     service 'redborder-monitor' do
       service_name 'redborder-monitor'
