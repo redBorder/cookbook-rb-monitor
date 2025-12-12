@@ -12,10 +12,12 @@ def multiplicate_monitors(file_path, factor, test: false, sensor_names: ['Device
   # Iterar sobre cada sensor
   json_data['sensors'].each do |sensor|
     next unless sensor_names.include? sensor['sensor_name'] # <-- filter target sensor only
-
-    if sensor['monitors'].is_a?(Array)
+    next unless sensor['monitors'].is_a?(Array)
+    if factor >= 1
       sensor['monitors'] = sensor['monitors'] * factor
       puts sensor['monitors'].last
+    else
+      sensor['monitors'] = sensor['monitors'].first((factor * sensor['monitors'].size).floor)
     end
   end
 
@@ -59,7 +61,7 @@ OptionParser.new do |opts|
   opts.banner = usage
 
   opts.on('-f', '--file PATH', 'Ruta al archivo JSON') { |v| options[:file] = v }
-  opts.on('-n', '--factor N', Integer, 'Factor de multiplicación') { |v| options[:factor] = v }
+  opts.on('-n', '--factor N', Float, 'Factor de multiplicación') { |v| options[:factor] = v }
   opts.on('-t', '--test', 'Crear archivo de prueba') { options[:test] = true }
   opts.on('-h', '--help', usage) do
     puts opts
@@ -72,4 +74,5 @@ result = multiplicate_monitors(options[:file], options[:factor], test: options[:
 
 puts "Total de sensores procesados: #{result}"
 
-`cat /etc/redborder-monitor/config.json | jq '.sensors[6].monitors | length'`
+puts `cat /etc/redborder-monitor/config.json | jq '.sensors[6].monitors | length'`
+`service redborder-monitor restart`

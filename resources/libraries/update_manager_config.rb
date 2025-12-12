@@ -145,7 +145,8 @@ module Rbmonitor
       end
 
       # Calculate used memory per service
-      memory_monitors = ['/* MEMORY PER SERVICE */']
+      memory_monitors = []
+      #memory_monitors = ['/* MEMORY PER SERVICE */']
       begin
         original_services = node.default['redborder']['services']
         enabled_services = JSON.parse(original_services.to_json)
@@ -175,7 +176,8 @@ module Rbmonitor
       end
 
       # Create monitors array
-      manager_monitors = ['/* OID extracted from http://www.debianadmin.com/linux-snmp-oids-for-cpumemory-and-disk-statistics.html */']
+      #manager_monitors = ['/* OID extracted from http://www.debianadmin.com/linux-snmp-oids-for-cpumemory-and-disk-statistics.html */']
+      manager_monitors = []
       manager_monitors.concat(snmp_monitors)
       manager_monitors.concat(ipmi_monitors)
       manager_monitors.concat(kafka_monitors)
