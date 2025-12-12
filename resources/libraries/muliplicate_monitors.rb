@@ -4,17 +4,26 @@
 require 'json'
 require 'fileutils'
 require 'optparse'
+require 'securerandom'
 
-def multiplicate_monitors(file_path, factor, test: false, sensor_names: ['Device'])
+def multiplicate_monitors(file_path, factor, test: false, sensor_name: 'Device')
   # Leer y parsear el JSON
+  sensor_index = -1
   json_data = JSON.parse(File.read(file_path))
 
-  # Iterar sobre cada sensor
-  json_data['sensors'].each do |sensor|
-    next unless sensor_names.include? sensor['sensor_name'] # <-- filter target sensor only
+  json_data['sensors'].each_with_index do |sensor, i|
+    next unless [sensor_name].include? sensor['sensor_name'] # <-- filter target sensor only
     next unless sensor['monitors'].is_a?(Array)
+
+    sensor_index = i
     if factor >= 1
       sensor['monitors'] = sensor['monitors'] * factor
+
+      sensor['monitors'].each do |mon|
+        next unless mon['name']
+        mon['name'] = SecureRandom.uuid
+      end
+
       puts sensor['monitors'].last
     else
       sensor['monitors'] = sensor['monitors'].first((factor * sensor['monitors'].size).floor)
@@ -39,6 +48,7 @@ def multiplicate_monitors(file_path, factor, test: false, sensor_names: ['Device
   puts "Situación de monitores actualizada en: #{output_path}"
   puts "Cada 'monitors' ha sido multiplicado por #{factor}."
   puts "Total de sensores procesados: #{json_data['sensors'].size}"
+  return sensor_index, json_data['sensors'].size
 end
 
 def usage
@@ -70,9 +80,9 @@ OptionParser.new do |opts|
 end.parse!
 
 # Ejecutar función
-result = multiplicate_monitors(options[:file], options[:factor], test: options[:test])
+sensor_index, s_proc = multiplicate_monitors(options[:file], options[:factor], test: options[:test])
 
-puts "Total de sensores procesados: #{result}"
+puts "Total de sensores procesados: #{s_proc}"
+# puts `cat /etc/redborder-monitor/config.json | jq '.sensors[sensor_index]'`
 
-puts `cat /etc/redborder-monitor/config.json | jq '.sensors[6].monitors | length'`
-`service redborder-monitor restart`
+puts `cat /etc/redborder-monitor/config.json | jq '.sensors[#{sensor_index}].monitors | length'`
