@@ -132,7 +132,7 @@ module Rbmonitor
           ip            = resource_node['redborder']['ipaddress']
 
           # Update ip, user and password for IPMI monitors
-          if ((rest_user && rest_password) || (ipmi_user && ipmi_password))
+          if (rest_user && rest_password) || (ipmi_user && ipmi_password)
             user = rest_user
             password = rest_password
             if ipmi_user && ipmi_password
@@ -144,7 +144,7 @@ module Rbmonitor
           end
 
           # Update ip, user and password for REDFISH monitors
-          if ((rest_user && rest_password) || (redfish_user && redfish_password))
+          if (rest_user && rest_password) || (redfish_user && redfish_password)
             user = rest_user
             password = rest_password
             if redfish_user && redfish_password
