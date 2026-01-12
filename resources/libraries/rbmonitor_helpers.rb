@@ -123,16 +123,35 @@ module Rbmonitor
           val.gsub!('%telnet_user', resource_node['redborder']['telnet_user'].to_s)
           val.gsub!('%telnet_password', resource_node['redborder']['telnet_password'].to_s)
 
-          protocol      = resource_node['redborder']['protocol']
           rest_user     = resource_node['redborder']['rest_api_user']
           rest_password = resource_node['redborder']['rest_api_password']
+          redfish_user = resource_node['redborder']['redfish_user']
+          redfish_password = resource_node['redborder']['redfish_password']
+          ipmi_user = resource_node['redborder']['ipmi_user']
+          ipmi_password = resource_node['redborder']['ipmi_password']
           ip            = resource_node['redborder']['ipaddress']
 
-          if protocol == 'IPMI' && rest_user && rest_password
-            cmd = "rb_get_sensor.sh -i #{ip} -u #{rest_user} -p #{rest_password}"
+          # Update ip, user and password for IPMI monitors
+          if ((rest_user && rest_password) || (ipmi_user && ipmi_password))
+            user = rest_user
+            password = rest_password
+            if ipmi_user && ipmi_password
+              user = ipmi_user
+              password = ipmi_password
+            end
+            cmd = "rb_get_sensor.sh -i #{ip} -u #{user} -p #{password}"
             val.gsub!('rb_get_sensor.sh', cmd)
-          elsif protocol == 'Redfish' && rest_user && rest_password
-            cmd = "rb_get_redfish.sh -i #{ip} -u #{rest_user} -p #{rest_password}"
+          end
+
+          # Update ip, user and password for REDFISH monitors
+          if ((rest_user && rest_password) || (redfish_user && redfish_password))
+            user = rest_user
+            password = rest_password
+            if redfish_user && redfish_password
+              user = redfish_user
+              password = redfish_password
+            end
+            cmd = "rb_get_redfish.sh -i #{ip} -u #{user} -p #{password}"
             val.gsub!('rb_get_redfish.sh', cmd)
           end
 
