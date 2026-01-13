@@ -14,9 +14,15 @@ action :add do
     user = 'redborder-monitor'
 
     device_nodes = new_resource.device_nodes
+    snmp_nodes = new_resource.snmp_nodes
+    redfish_nodes = new_resource.redfish_nodes
+    ipmi_nodes = new_resource.ipmi_nodes
     flow_nodes = new_resource.flow_nodes
     proxy_flow_nodes = new_resource.proxy_flow_nodes
     proxy_device_nodes = new_resource.proxy_device_nodes
+    proxy_snmp_nodes = new_resource.proxy_snmp_nodes
+    proxy_redfish_nodes = new_resource.proxy_redfish_nodes
+    proxy_ipmi_nodes = new_resource.proxy_ipmi_nodes
     managers = new_resource.managers
     proxy_nodes = new_resource.proxy_nodes
     cluster = new_resource.cluster
@@ -53,9 +59,15 @@ action :add do
     resource['community'] = community
     resource['log_level'] = log_level
     resource['device_nodes'] = device_nodes
+    resource['snmp_nodes'] = snmp_nodes
+    resource['redfish_nodes'] = redfish_nodes
+    resource['ipmi_nodes'] = ipmi_nodes
     resource['flow_nodes'] = flow_nodes # In proxy, flow_nodes turned to not be nodes
     resource['proxy_flow_nodes'] = proxy_flow_nodes
     resource['proxy_device_nodes'] = proxy_device_nodes
+    resource['proxy_snmp_nodes'] = proxy_snmp_nodes
+    resource['proxy_redfish_nodes'] = proxy_redfish_nodes
+    resource['proxy_ipmi_nodes'] = proxy_ipmi_nodes
     resource['managers'] = managers
     resource['proxy_nodes'] = proxy_nodes
     resource['cluster'] = cluster
