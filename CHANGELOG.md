@@ -1,6 +1,12 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.5.5
+
+  - manegron
+    - [2df5efe] Fix lint
+    - [3bac9af] Add snmp, redfish and ipmi sensors
+
 ## 0.5.4
 
   - vimesa
