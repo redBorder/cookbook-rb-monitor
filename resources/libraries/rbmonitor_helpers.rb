@@ -12,7 +12,7 @@ module Rbmonitor
       return enrichment unless redborder
 
       if redborder['sensor_uuid']
-        enrichment['uuid'] = redborder['sensor_uuid']
+        enrichment['sensor_uuid'] = redborder['sensor_uuid']
       end
 
       if redborder['service_provider']
