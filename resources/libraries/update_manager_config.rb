@@ -155,7 +155,7 @@ module Rbmonitor
           service_enablement[systemd_name.first] = services[service_name]
         end
 
-        enabled_services =  service_enablement.select { |k, v| v == true }
+        enabled_services = service_enablement.select { |_, v| v == true }
 
         enabled_services.each_key do |service|
           serv = service.gsub('-', '_')
