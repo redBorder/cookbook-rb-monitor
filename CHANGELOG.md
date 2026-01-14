@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.5.6
+
+  - manegron
+    - [e5a0a1e] Add sensor_uuid
+
 ## 0.5.5
 
   - manegron
