@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.5.7
+
+  - manegron
+    - [148d175] Monitor all memory services
+
 ## 0.5.6
 
   - manegron
