@@ -147,23 +147,16 @@ module Rbmonitor
       # Calculate used memory per service
       memory_monitors = ['/* MEMORY PER SERVICE */']
       begin
-        original_services = node.default['redborder']['services']
-        enabled_services = JSON.parse(original_services.to_json)
-        service_list = %w(druid-broker druid-coordinator druid-historical
-                          druid-middlemanager druid-overlord druid-realtime
-                          http2k kafka n2klocd redborder-nmsp webui zookeeper f2k)
+        services = node['redborder']['services'] || []
+        systemd_services = node['redborder']['systemdservices'] || []
 
-        # In case user modifies a service
-        overwritten_services = node.attributes['redborder']['services']
-        overwritten_services.each do |service, value|
-          if value == false
-            enabled_services.delete(service)
-          elsif value == true && service_list.include?(service)
-            enabled_services[service] = true
-          end
+        service_enablement = {}
+        systemd_services.each do |service_name, systemd_name|
+          service_enablement[systemd_name.first] = services[service_name]
         end
 
-        enabled_services.select! { |k, v| v == true && service_list.include?(k) }
+        enabled_services =  service_enablement.select { |k, v| v == true }
+
         enabled_services.each_key do |service|
           serv = service.gsub('-', '_')
           memory_monitors.push({ 'name': "memory_total_#{serv}", 'unit': 'kB', 'integer': 1, 'send': 0, 'system': "sudo /usr/lib/redborder/bin/rb_mem.sh -n #{service} 2>/dev/null" })
