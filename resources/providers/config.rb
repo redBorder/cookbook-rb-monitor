@@ -33,7 +33,7 @@ action :add do
 
     # TODO: Check if this go here or should be in Require in the spec file
     # Installation of required utilities
-    utilities = %w(atop bc net-snmp-utils fping pcstat)
+    utilities = %w(atop bc rb-net-snmp fping pcstat)
     utilities.each do |utility|
       dnf_package utility do
         action :upgrade
