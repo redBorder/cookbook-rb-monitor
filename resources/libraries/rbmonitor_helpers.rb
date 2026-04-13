@@ -155,6 +155,10 @@ module Rbmonitor
             val.gsub!('rb_get_redfish.sh', cmd)
           end
 
+          if monitor[k].is_a?(Hash) && !monitor[k]['endpoint'].nil?
+            val = monitor[k]
+          end
+
           monitor[k] = val
         end
 
