@@ -93,7 +93,7 @@ module Rbmonitor
         operation = monitor['system']
         next unless name
 
-        # skip if already inserted or not allowed by data_bag
+        # skip if already inserted with the same operation if has operation or not allowed by data_bag 
         monitors_list = data_bag['monitors']
         next unless (inserted[name].nil? || !inserted_operations.include?(operation)) && (monitors_list.nil? || monitors_list.include?(name))
 
@@ -157,6 +157,7 @@ module Rbmonitor
             val.gsub!('rb_get_redfish.sh', cmd)
           end
 
+          # Format monitor enrichment as a correct JSON being a Ruby hash if is a endpoint
           if monitor[k].is_a?(Hash) && !monitor[k]['endpoint'].nil?
             val = monitor[k]
           end
