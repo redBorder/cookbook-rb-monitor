@@ -78,6 +78,7 @@ module Rbmonitor
 
       monitors = []
       inserted = {}
+      inserted_operations = []
       send_flag = 0
 
       begin
@@ -89,11 +90,12 @@ module Rbmonitor
       resource_node['redborder']['monitors'].each do |resource_node_monitor|
         monitor = resource_node_monitor.to_hash
         name    = monitor['name']
+        operation = monitor['system']
         next unless name
 
         # skip if already inserted or not allowed by data_bag
         monitors_list = data_bag['monitors']
-        next unless inserted[name].nil? && (monitors_list.nil? || monitors_list.include?(name))
+        next unless (inserted[name].nil? || !inserted_operations.include?(operation)) && (monitors_list.nil? || monitors_list.include?(name))
 
         # decide send_flag for this monitor
         send_flag = resource_node['redborder']['monitors'].any? do |m|
@@ -164,6 +166,7 @@ module Rbmonitor
 
         monitor['send'] = send_flag
         inserted[name]  = true
+        inserted_operations << operation
         monitors << monitor
       end
 
