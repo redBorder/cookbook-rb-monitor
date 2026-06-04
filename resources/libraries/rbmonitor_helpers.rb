@@ -39,6 +39,30 @@ module Rbmonitor
         enrichment['organization_uuid'] = redborder['organization_uuid']
       end
 
+      if redborder['campus']
+        enrichment['campus'] = redborder['campus']
+      end
+
+      if redborder['campus_uuid']
+        enrichment['campus_uuid'] = redborder['campus_uuid']
+      end
+
+      if redborder['deployment']
+        enrichment['deployment'] = redborder['deployment']
+      end
+
+      if redborder['deployment_uuid']
+        enrichment['deployment_uuid'] = redborder['deployment_uuid']
+      end
+
+      if redborder['market']
+        enrichment['market'] = redborder['market']
+      end
+
+      if redborder['market_uuid']
+        enrichment['market_uuid'] = redborder['market_uuid']
+      end
+
       if redborder['building']
         enrichment['building_uuid'] = redborder['building_uuid']
       end
