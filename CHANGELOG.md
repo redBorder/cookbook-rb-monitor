@@ -1,6 +1,17 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.6.0
+
+  - Miguel Negrón
+    - [cf4a67b] Merge pull request #57 from redBorder/bugfix/#25275_campus_enrichment
+  - manegron
+    - [cf4a67b] Merge pull request #57 from redBorder/bugfix/#25275_campus_enrichment
+    - [05339dc] add deployment, deployment_uuid, market and market_uuid to enrichment
+  - flopez
+    - [87beb8a] remove white line
+    - [ef3b777] Add campus and campus_uiid to enrichment
+
 ## 0.5.7
 
   - manegron
