@@ -6,6 +6,7 @@ module Rbmonitor
       redfish: %w(redfish_nodes proxy_redfish_nodes),
       ipmi: %w(ipmi_nodes proxy_ipmi_nodes),
       flow:   %w(flow_nodes proxy_flow_nodes),
+      http_agent: %w(http_agent_nodes proxy_http_agent_nodes)
     }.freeze
 
     # ======================================================
