@@ -57,7 +57,9 @@ module Rbmonitor
       nodes.each_with_index do |snode, index|
         next unless snode['redborder']
         next unless snode['redborder']['monitors'] && !snode['redborder']['monitors'].empty?
-        next unless snode['ipaddress']
+
+        is_http_agent = snode.primary_runlist.run_list_items.any? { |item| item.name == 'http_agent-sensor' }
+        next if !snode['ipaddress'] && !is_http_agent
 
         # Exclude nodes that are children of proxies
         parent_id = snode.dig('redborder', 'parent_id')
