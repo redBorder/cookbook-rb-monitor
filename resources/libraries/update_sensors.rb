@@ -6,7 +6,7 @@ module Rbmonitor
       redfish: %w(redfish_nodes proxy_redfish_nodes),
       ipmi: %w(ipmi_nodes proxy_ipmi_nodes),
       flow: %w(flow_nodes proxy_flow_nodes),
-      http_agent: %w(http_agent_nodes proxy_http_agent_nodes)
+      http_agent: %w(http_agent_nodes proxy_http_agent_nodes),
     }.freeze
 
     # ======================================================
@@ -93,7 +93,7 @@ module Rbmonitor
       {
         timeout: 5,
         sensor_name: snode['rbname'] || snode.name,
-        sensor_ip: snode['ipaddress'],
+        sensor_ip: snode['ipaddress'].nil? ? '0.0.0.0' : snode['ipaddress'],
         community: (snode['redborder']['snmp_community'].to_s.empty? ? 'public' : snode['redborder']['snmp_community'].to_s),
         snmp_version: (snode['redborder']['snmp_version'].to_s.empty? ? '2c' : snode['redborder']['snmp_version'].to_s),
         snmp_username: snode['redborder']['snmp_username'].to_s,
@@ -103,7 +103,7 @@ module Rbmonitor
         snmp_priv_protocol: snode['redborder']['snmp_priv_protocol'].to_s,
         snmp_priv_password: snode['redborder']['snmp_priv_password'].to_s,
         enrichment: enrich(snode),
-        monitors: monitors(snode),
+        monitors: monitors(snode)
       }
     end
   end
