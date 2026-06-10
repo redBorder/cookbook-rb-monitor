@@ -103,7 +103,7 @@ module Rbmonitor
         snmp_priv_protocol: snode['redborder']['snmp_priv_protocol'].to_s,
         snmp_priv_password: snode['redborder']['snmp_priv_password'].to_s,
         enrichment: enrich(snode),
-        monitors: monitors(snode)
+        monitors: monitors(snode),
       }
     end
   end
