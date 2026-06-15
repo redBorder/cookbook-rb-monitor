@@ -5,7 +5,8 @@ module Rbmonitor
       snmp: %w(snmp_nodes proxy_snmp_nodes),
       redfish: %w(redfish_nodes proxy_redfish_nodes),
       ipmi: %w(ipmi_nodes proxy_ipmi_nodes),
-      flow:   %w(flow_nodes proxy_flow_nodes),
+      flow: %w(flow_nodes proxy_flow_nodes),
+      http_agent: %w(http_agent_nodes proxy_http_agent_nodes),
     }.freeze
 
     # ======================================================
@@ -56,7 +57,9 @@ module Rbmonitor
       nodes.each_with_index do |snode, index|
         next unless snode['redborder']
         next unless snode['redborder']['monitors'] && !snode['redborder']['monitors'].empty?
-        next unless snode['ipaddress']
+
+        is_http_agent = snode.primary_runlist.run_list_items.any? { |item| item.name == 'http_agent-sensor' }
+        next if !snode['ipaddress'] && !is_http_agent
 
         # Exclude nodes that are children of proxies
         parent_id = snode.dig('redborder', 'parent_id')
@@ -90,7 +93,7 @@ module Rbmonitor
       {
         timeout: 5,
         sensor_name: snode['rbname'] || snode.name,
-        sensor_ip: snode['ipaddress'],
+        sensor_ip: snode['ipaddress'].nil? ? '0.0.0.0' : snode['ipaddress'],
         community: (snode['redborder']['snmp_community'].to_s.empty? ? 'public' : snode['redborder']['snmp_community'].to_s),
         snmp_version: (snode['redborder']['snmp_version'].to_s.empty? ? '2c' : snode['redborder']['snmp_version'].to_s),
         snmp_username: snode['redborder']['snmp_username'].to_s,

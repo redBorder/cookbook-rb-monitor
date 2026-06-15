@@ -1,6 +1,16 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.7.0
+
+  - Pablo Pérez
+    - [c0b9667] Lint cookstyle
+    - [55c9028] Allow sensor without ipaddress if is http agent
+    - [6d88b5f] Add http agent nodes
+    - [ffb939a] Fix comment formatting in rbmonitor_helpers.rb
+    - [4a8301e] Add monitors if have the same name with different operations
+    - [c55036e] Add endpoint enrichment as json
+
 ## 0.6.0
 
   - Miguel Negrón
