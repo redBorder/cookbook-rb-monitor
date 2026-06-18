@@ -7,6 +7,8 @@ module Rbmonitor
       ipmi: %w(ipmi_nodes proxy_ipmi_nodes),
       flow: %w(flow_nodes proxy_flow_nodes),
       http_agent: %w(http_agent_nodes proxy_http_agent_nodes),
+      vmware_exsi: %w(vmware_exsi_nodes proxy_vmware_exsi_nodes),
+      vmware_exsi_vm: %w(vmware_exsi_vm_nodes proxy_vmware_exsi_vm_nodes),
     }.freeze
 
     # ======================================================
@@ -59,7 +61,8 @@ module Rbmonitor
         next unless snode['redborder']['monitors'] && !snode['redborder']['monitors'].empty?
 
         is_http_agent = snode.primary_runlist.run_list_items.any? { |item| item.name == 'http_agent-sensor' }
-        next if !snode['ipaddress'] && !is_http_agent
+        is_vmware_exsi_vm = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-vm-sensor' }
+        next if !snode['ipaddress'] && !is_http_agent && !is_vmware_exsi_vm
 
         # Exclude nodes that are children of proxies
         parent_id = snode.dig('redborder', 'parent_id')

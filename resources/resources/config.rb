@@ -22,6 +22,8 @@ attribute :proxy_snmp_nodes, kind_of: Array, default: []
 attribute :proxy_redfish_nodes, kind_of: Array, default: []
 attribute :proxy_ipmi_nodes, kind_of: Array, default: []
 attribute :proxy_http_agent_nodes, kind_of: Array, default: []
+attribute :vmware_exsi_nodes, kind_of: Array, default: []
+attribute :vmware_exsi_vm_nodes, kind_of: Array, default: []
 attribute :managers, kind_of: Array, default: []
 attribute :proxy_nodes, kind_of: Array, default: []
 attribute :cluster, kind_of: Hash, default: {}

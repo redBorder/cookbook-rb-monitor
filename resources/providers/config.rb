@@ -25,6 +25,8 @@ action :add do
     proxy_redfish_nodes = new_resource.proxy_redfish_nodes
     proxy_ipmi_nodes = new_resource.proxy_ipmi_nodes
     proxy_http_agent_nodes = new_resource.proxy_http_agent_nodes
+    vmware_exsi_nodes = new_resource.vmware_exsi_nodes
+    vmware_exsi_vm_nodes = new_resource.vmware_exsi_vm_nodes
     managers = new_resource.managers
     proxy_nodes = new_resource.proxy_nodes
     cluster = new_resource.cluster
@@ -41,6 +43,7 @@ action :add do
         action :upgrade
       end
     end
+
 
     execute 'create_user' do
       command "/usr/sbin/useradd #{user}"
@@ -72,6 +75,8 @@ action :add do
     resource['proxy_redfish_nodes'] = proxy_redfish_nodes
     resource['proxy_ipmi_nodes'] = proxy_ipmi_nodes
     resource['proxy_http_agent_nodes'] = proxy_http_agent_nodes
+    resource['vmware_exsi_nodes'] = vmware_exsi_nodes
+    resource['vmware_exsi_vm_nodes'] = vmware_exsi_vm_nodes
     resource['managers'] = managers
     resource['proxy_nodes'] = proxy_nodes
     resource['cluster'] = cluster
