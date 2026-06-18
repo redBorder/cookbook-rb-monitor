@@ -44,7 +44,6 @@ action :add do
       end
     end
 
-
     execute 'create_user' do
       command "/usr/sbin/useradd #{user}"
       ignore_failure true

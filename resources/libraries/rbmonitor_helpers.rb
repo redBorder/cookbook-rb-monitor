@@ -187,13 +187,13 @@ module Rbmonitor
             query = Chef::Search::Query.new
             parent_nodes = query.search(:node, "name:rbvmware-exsi-#{parent_id}").first
             parent_node = parent_nodes.first if parent_nodes
-            
+
             vmware_user       = parent_node ? parent_node['redborder']['vmware_username'] : ''
             vmware_password   = parent_node ? parent_node['redborder']['vmware_password'] : ''
             vmware_datacenter = parent_node ? parent_node['redborder']['vmware_datacenter'] : ''
             vmware_folder     = parent_node ? parent_node['redborder']['vmware_folder'] : ''
-            ip                 = parent_node ? parent_node['redborder']['ipaddress'] : ''
-            vm_name            = resource_node['rbname'] || resource_node.name
+            ip                = parent_node ? parent_node['redborder']['ipaddress'] : ''
+            vm_name           = resource_node['rbname'] || resource_node.name
             cmd = "python3 /usr/lib/redborder/scripts/rb_vmware_exsi_vm_monitor.py -i #{ip} -u #{vmware_user} -p #{vmware_password} -d #{vmware_datacenter} -f #{vmware_folder} -n #{vm_name}"
             val.gsub!('rb_vmware_exsi_vm_monitor.py', cmd)
 
@@ -203,7 +203,7 @@ module Rbmonitor
             vmware_password   = resource_node['redborder']['vmware_password']
             vmware_datacenter = resource_node['redborder']['vmware_datacenter']
             vmware_folder     = resource_node['redborder']['vmware_folder']
-            ip                 = resource_node['redborder']['ipaddress']
+            ip                = resource_node['redborder']['ipaddress']
             cmd = "python3 /usr/lib/redborder/scripts/rb_vmware_exsi_monitor.py -i #{ip} -u #{vmware_user} -p #{vmware_password} -d #{vmware_datacenter} -f #{vmware_folder}"
             val.gsub!('rb_vmware_exsi_monitor.py', cmd)
           end
