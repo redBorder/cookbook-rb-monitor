@@ -27,6 +27,8 @@ action :add do
     proxy_http_agent_nodes = new_resource.proxy_http_agent_nodes
     vmware_exsi_nodes = new_resource.vmware_exsi_nodes
     vmware_exsi_vm_nodes = new_resource.vmware_exsi_vm_nodes
+    proxy_vmware_exsi_nodes = new_resource.proxy_vmware_exsi_nodes
+    proxy_vmware_exsi_vm_nodes = new_resource.proxy_vmware_exsi_vm_nodes
     managers = new_resource.managers
     proxy_nodes = new_resource.proxy_nodes
     cluster = new_resource.cluster
@@ -76,6 +78,8 @@ action :add do
     resource['proxy_http_agent_nodes'] = proxy_http_agent_nodes
     resource['vmware_exsi_nodes'] = vmware_exsi_nodes
     resource['vmware_exsi_vm_nodes'] = vmware_exsi_vm_nodes
+    resource['proxy_vmware_exsi_nodes'] = proxy_vmware_exsi_nodes
+    resource['proxy_vmware_exsi_vm_nodes'] = proxy_vmware_exsi_vm_nodes
     resource['managers'] = managers
     resource['proxy_nodes'] = proxy_nodes
     resource['cluster'] = cluster
