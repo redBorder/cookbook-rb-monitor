@@ -66,19 +66,20 @@ module Rbmonitor
 
         if (is_vmware_exsi || is_vmware_exsi_vm) && (snode['redborder']['monitors'].nil? || snode['redborder']['monitors'].empty?)
           snode.normal['redborder'] ||= {}
-          snode.normal['redborder']['monitors'] = if is_vmware_exsi
-            [
-              { 'name' => 'cpu', 'system' => 'rb_vmware_exsi_monitor.sh -t cpu', 'unit' => '%' },
-              { 'name' => 'memory', 'system' => 'rb_vmware_exsi_monitor.sh -t memory', 'unit' => '%' },
-              { 'name' => 'disk', 'system' => 'rb_vmware_exsi_monitor.sh -t disk', 'unit' => '%' }
-            ]
-          else
-            [
-              { 'name' => 'cpu', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t cpu', 'unit' => '%' },
-              { 'name' => 'memory', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t memory', 'unit' => '%' },
-              { 'name' => 'disk', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t disk', 'unit' => '%' }
-            ]
-          end
+          snode.normal['redborder']['monitors'] =
+            if is_vmware_exsi
+              [
+                { 'name' => 'cpu', 'system' => 'rb_vmware_exsi_monitor.sh -t cpu', 'unit' => '%' },
+                { 'name' => 'memory', 'system' => 'rb_vmware_exsi_monitor.sh -t memory', 'unit' => '%' },
+                { 'name' => 'disk', 'system' => 'rb_vmware_exsi_monitor.sh -t disk', 'unit' => '%' },
+              ]
+            else
+              [
+                { 'name' => 'cpu', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t cpu', 'unit' => '%' },
+                { 'name' => 'memory', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t memory', 'unit' => '%' },
+                { 'name' => 'disk', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t disk', 'unit' => '%' },
+              ]
+            end
         end
 
         next unless snode['redborder']['monitors'] && !snode['redborder']['monitors'].empty?
