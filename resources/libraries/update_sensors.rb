@@ -7,6 +7,8 @@ module Rbmonitor
       ipmi: %w(ipmi_nodes proxy_ipmi_nodes),
       flow: %w(flow_nodes proxy_flow_nodes),
       http_agent: %w(http_agent_nodes proxy_http_agent_nodes),
+      vmware_exsi: %w(vmware_exsi_nodes proxy_vmware_exsi_nodes),
+      vmware_exsi_vm: %w(vmware_exsi_vm_nodes proxy_vmware_exsi_vm_nodes),
     }.freeze
 
     # ======================================================
@@ -29,7 +31,8 @@ module Rbmonitor
           nodes: resource[manager_key],
           manager_list: resource['managers'],
           hostname: resource['hostname'],
-          exclude_parent_ids: proxy_sensor_ids
+          exclude_parent_ids: proxy_sensor_ids,
+          resource: resource
         )
 
         # Proxy sensors
@@ -40,7 +43,8 @@ module Rbmonitor
           nodes: resource[proxy_key],
           manager_list: nil,
           hostname: nil,
-          exclude_parent_ids: nil
+          exclude_parent_ids: nil,
+          resource: resource
         )
       end
     end
@@ -48,7 +52,7 @@ module Rbmonitor
     # ======================================================
     # Generic engine
     # ======================================================
-    def update_sensor_group(title:, nodes:, manager_list:, hostname:, exclude_parent_ids:)
+    def update_sensor_group(title:, nodes:, manager_list:, hostname:, exclude_parent_ids:, resource: {})
       return if nodes.nil? || nodes.empty?
 
       node.default['redborder']['monitor']['config']['sensors'] << title
@@ -56,10 +60,32 @@ module Rbmonitor
 
       nodes.each_with_index do |snode, index|
         next unless snode['redborder']
+
+        is_vmware_exsi = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-sensor' }
+        is_vmware_exsi_vm = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-vm-sensor' }
+
+        if (is_vmware_exsi || is_vmware_exsi_vm) && (snode['redborder']['monitors'].nil? || snode['redborder']['monitors'].empty?)
+          snode.normal['redborder'] ||= {}
+          snode.normal['redborder']['monitors'] =
+            if is_vmware_exsi
+              [
+                { 'name' => 'cpu', 'system' => 'rb_vmware_exsi_monitor.sh -t cpu', 'unit' => '%' },
+                { 'name' => 'memory', 'system' => 'rb_vmware_exsi_monitor.sh -t memory', 'unit' => '%' },
+                { 'name' => 'disk', 'system' => 'rb_vmware_exsi_monitor.sh -t disk', 'unit' => '%' },
+              ]
+            else
+              [
+                { 'name' => 'cpu', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t cpu', 'unit' => '%' },
+                { 'name' => 'memory', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t memory', 'unit' => '%' },
+                { 'name' => 'disk', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t disk', 'unit' => '%' },
+              ]
+            end
+        end
+
         next unless snode['redborder']['monitors'] && !snode['redborder']['monitors'].empty?
 
         is_http_agent = snode.primary_runlist.run_list_items.any? { |item| item.name == 'http_agent-sensor' }
-        next if !snode['ipaddress'] && !is_http_agent
+        next if !snode['ipaddress'] && !is_http_agent && !is_vmware_exsi_vm
 
         # Exclude nodes that are children of proxies
         parent_id = snode.dig('redborder', 'parent_id')
@@ -77,7 +103,7 @@ module Rbmonitor
 
         if handle
           node.default['redborder']['monitor']['config']['sensors'] << "/* Node: #{name}    Monitors: #{count} */"
-          sensor = build_sensor_hash(snode)
+          sensor = build_sensor_hash(snode, resource)
           node.default['redborder']['monitor']['count'] += count
           node.default['redborder']['monitor']['config']['sensors'] << sensor
         else
@@ -89,7 +115,7 @@ module Rbmonitor
     # ======================================================
     # Sensor hash construction
     # ======================================================
-    def build_sensor_hash(snode)
+    def build_sensor_hash(snode, resource = {})
       {
         timeout: 5,
         sensor_name: snode['rbname'] || snode.name,
@@ -103,7 +129,7 @@ module Rbmonitor
         snmp_priv_protocol: snode['redborder']['snmp_priv_protocol'].to_s,
         snmp_priv_password: snode['redborder']['snmp_priv_password'].to_s,
         enrichment: enrich(snode),
-        monitors: monitors(snode),
+        monitors: monitors(snode, resource),
       }
     end
   end
