@@ -64,7 +64,7 @@ module Rbmonitor
         end
 
         if !monitor_dg['monitors'] || monitor_dg['monitors'].include?('disk_load')
-          snmp_monitors.push({ 'name': 'disk_load', 'system': "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-0 ' | awk '{print $7}'", 'unit': '%' })
+          snmp_monitors.push({ 'name': 'disk_load', 'system': "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-0 ' | awk '{print $7}'", 'unit': '%' })
           node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + 1
         end
 
@@ -75,7 +75,7 @@ module Rbmonitor
           end
 
           if !monitor_dg['monitors'] || monitor_dg['monitors'].include?('disk_aggregated_load')
-            snmp_monitors.push({ 'name': 'disk_aggregated_load', 'system': "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-1 ' | awk '{print $7}'", 'unit': '%' })
+            snmp_monitors.push({ 'name': 'disk_aggregated_load', 'system': "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-1 ' | awk '{print $7}'", 'unit': '%' })
             node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + 1
           end
         end
@@ -89,7 +89,7 @@ module Rbmonitor
           end
 
           if !monitor_dg['monitors'] || monitor_dg['monitors'].include?('disk_raw_load')
-            snmp_monitors.push({ 'name': 'disk_raw_load', 'system': "snmptable -v 2c -c redborder 127.0.0.1 diskIOTable|grep ' dm-2 ' | awk '{print $7}'", 'unit': '%' })
+            snmp_monitors.push({ 'name': 'disk_raw_load', 'system': "snmptable -v 2c -c redBorder 127.0.0.1 diskIOTable|grep ' dm-2 ' | awk '{print $7}'", 'unit': '%' })
             node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + 1
           end
         end
@@ -137,7 +137,7 @@ module Rbmonitor
       begin
         if node.default['redborder']['services']['kafka'] == true && File.exist?('/tmp/kafka')
           kafka_monitors.push({ 'name': 'kafka_disk_cached_pages', 'system': "find /tmp/kafka/ \\( -size +1 -a -! -type d \\) -exec /usr/local/bin/pcstat -terse {} \\+ | awk -F',' '{s+=$5;c+=$6}END{print c/s*100}'", 'unit': '%' })
-          kafka_monitors.push({ 'name': 'cache_hits', 'system': "sudo /usr/lib/redborder/bin/cachestat.sh | awk '{$1=$1};1'", 'unit': '%' })
+          kafka_monitors.push({ 'name': 'cache_hits', 'system': "sudo /usr/share/bcc/tools/cachestat 1 1 | awk 'NR==2 {sub(/%/, \"\"); print $4}'", 'unit': '%' })
           node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + 1
         end
       rescue
