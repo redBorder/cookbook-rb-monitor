@@ -64,7 +64,7 @@ module Rbmonitor
         is_vmware_exsi = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-sensor' }
         is_vmware_exsi_vm = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-vm-sensor' }
 
-        if (is_vmware_exsi || is_vmware_exsi_vm) && (snode['redborder']['monitors'].nil? || snode['redborder']['monitors'].empty?)
+        if (is_vmware_exsi || is_vmware_exsi_vm) && snode['redborder']['monitors'].nil?
           snode.normal['redborder'] ||= {}
           snode.normal['redborder']['monitors'] =
             if is_vmware_exsi
