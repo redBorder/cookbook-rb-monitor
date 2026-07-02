@@ -89,7 +89,15 @@ module Rbmonitor
 
         # Exclude nodes that are children of proxies
         parent_id = snode.dig('redborder', 'parent_id')
-        next if exclude_parent_ids&.include?(parent_id)
+        if is_vmware_exsi_vm
+          # ponytail: VM nodes have an ESXi host as direct parent, not the proxy. Check the host's parent.
+          all_hosts = (resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])
+          parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
+          host_parent_id = parent_node&.dig('redborder', 'parent_id')
+          next if exclude_parent_ids&.include?(host_parent_id)
+        else
+          next if exclude_parent_ids&.include?(parent_id)
+        end
 
         name  = snode['rbname'] || snode.name
         count = snode['redborder']['monitors'].size
