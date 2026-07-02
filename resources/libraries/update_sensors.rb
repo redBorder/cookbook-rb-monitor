@@ -95,8 +95,8 @@ module Rbmonitor
           parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
           host_parent_id = parent_node&.dig('redborder', 'parent_id')
           next if exclude_parent_ids&.include?(host_parent_id)
-        else
-          next if exclude_parent_ids&.include?(parent_id)
+        elsif exclude_parent_ids&.include?(parent_id)
+          next
         end
 
         name  = snode['rbname'] || snode.name
