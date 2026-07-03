@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.8.1
+
+  - Vimesa
+    - [9510ec7] Modify some monitors so they can run on Rocky 9 (#61)
+
 ## 0.8.0
 
   - Nils
