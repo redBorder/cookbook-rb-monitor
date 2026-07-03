@@ -1,6 +1,14 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.8.0
+
+  - Nils
+    - [d81924f] make exsi sensor show from proxy
+    - [582ca5d] changed condition to add monitors for vmware exsi sensors
+    - [30fd82d] implement govmomi instead of pyvmomi
+    - [4790ffe] add vm and exsi nodes to config file
+
 ## 0.7.0
 
   - Pablo Pérez

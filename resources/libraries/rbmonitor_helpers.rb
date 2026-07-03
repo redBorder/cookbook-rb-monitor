@@ -97,7 +97,7 @@ module Rbmonitor
       result.strip.squeeze('')
     end
 
-    def monitors(resource_node)
+    def monitors(resource_node, resource = {})
       return [] unless resource_node && resource_node['redborder'] && resource_node['redborder']['monitors']
 
       monitors = []
@@ -179,6 +179,30 @@ module Rbmonitor
             end
             cmd = "rb_get_redfish.sh -i #{ip} -u #{user} -p #{password}"
             val.gsub!('rb_get_redfish.sh', cmd)
+          end
+
+          # Update ip, user and password for VMware ESXi VM monitors
+          if val.include?('rb_vmware_exsi_vm_monitor.sh')
+            parent_id = resource_node['redborder']['parent_id']
+            all_hosts = (resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])
+            parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
+
+            vmware_user       = parent_node ? parent_node['redborder']['vmware_username'] : ''
+            vmware_password   = parent_node ? parent_node['redborder']['vmware_password'] : ''
+            ip                = parent_node ? parent_node['redborder']['ipaddress'] : ''
+            vm_name           = resource_node['rbname'] || resource_node.name
+
+            cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_vm_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password} -n #{vm_name}"
+            val.gsub!('rb_vmware_exsi_vm_monitor.sh', cmd)
+
+          # Update ip, user and password for VMware ESXi Host monitors
+          elsif val.include?('rb_vmware_exsi_monitor.sh')
+            vmware_user       = resource_node['redborder']['vmware_username'] || ''
+            vmware_password   = resource_node['redborder']['vmware_password'] || ''
+            ip                = resource_node['redborder']['ipaddress'] || ''
+
+            cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password}"
+            val.gsub!('rb_vmware_exsi_monitor.sh', cmd)
           end
 
           # Format monitor enrichment as a correct JSON being a Ruby hash if is a endpoint
