@@ -144,7 +144,11 @@ module Rbmonitor
             snmp_community = 'public' if snmp_community.nil? || snmp_community.empty?
             val.gsub!('%snmp_community', snmp_community)
 
+<<<<<<< Updated upstream
             if val.include?('%snmp_')
+=======
+            if monitor[k].is_a?(String) && monitor[k].include?('%snmp_')
+>>>>>>> Stashed changes
               val = clean_snmp_command(val, resource_node['redborder'])
             end
 
@@ -161,14 +165,24 @@ module Rbmonitor
 
             # Update ip, user and password for IPMI monitors
             if (rest_user && rest_password) || (ipmi_user && ipmi_password)
+<<<<<<< Updated upstream
               user = ipmi_user || rest_user
               password = ipmi_password || rest_password
+=======
+              user = rest_user
+              password = rest_password
+              if ipmi_user && ipmi_password
+                user = ipmi_user
+                password = ipmi_password
+              end
+>>>>>>> Stashed changes
               cmd = "rb_get_sensor.sh -i #{ip} -u #{user} -p #{password}"
               val.gsub!('rb_get_sensor.sh', cmd)
             end
 
             # Update ip, user and password for REDFISH monitors
             if (rest_user && rest_password) || (redfish_user && redfish_password)
+<<<<<<< Updated upstream
               user = redfish_user || rest_user
               password = redfish_password || rest_password
               cmd = "rb_get_redfish.sh -i #{ip} -u #{user} -p #{password}"
@@ -194,6 +208,18 @@ module Rbmonitor
               vmware_user       = resource_node['redborder']['vmware_username'] || ''
               vmware_password   = resource_node['redborder']['vmware_password'] || ''
               ip                = resource_node['redborder']['ipaddress'] || ''
+=======
+              user = rest_user
+              password = rest_password
+              if redfish_user && redfish_password
+                user = redfish_user
+                password = redfish_password
+              end
+              cmd = "rb_get_redfish.sh -i #{ip} -u #{user} -p #{password}"
+              val.gsub!('rb_get_redfish.sh', cmd)
+            end
+          end
+>>>>>>> Stashed changes
 
               cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password}"
               val.gsub!('rb_vmware_exsi_monitor.sh', cmd)
