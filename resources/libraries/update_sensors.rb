@@ -69,15 +69,15 @@ module Rbmonitor
           snode.normal['redborder']['monitors'] =
             if is_vmware_exsi
               [
-                { 'name' => 'cpu', 'system' => 'rb_vmware_exsi_monitor.sh -t cpu', 'unit' => '%' },
-                { 'name' => 'memory', 'system' => 'rb_vmware_exsi_monitor.sh -t memory', 'unit' => '%' },
-                { 'name' => 'disk', 'system' => 'rb_vmware_exsi_monitor.sh -t disk', 'unit' => '%' },
+                { 'name' => 'cpu', 'plugin' => 'govc', 'params' => { 'target_type' => 'host', 'metric' => 'cpu_usage' }, 'unit' => '%' },
+                { 'name' => 'memory', 'plugin' => 'govc', 'params' => { 'target_type' => 'host', 'metric' => 'memory_usage' }, 'unit' => '%' },
+                { 'name' => 'disk', 'plugin' => 'govc', 'params' => { 'target_type' => 'host', 'metric' => 'disk_usage' }, 'unit' => '%' },
               ]
             else
               [
-                { 'name' => 'cpu', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t cpu', 'unit' => '%' },
-                { 'name' => 'memory', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t memory', 'unit' => '%' },
-                { 'name' => 'disk', 'system' => 'rb_vmware_exsi_vm_monitor.sh -t disk', 'unit' => '%' },
+                { 'name' => 'cpu', 'plugin' => 'govc', 'params' => { 'target_type' => 'vm', 'metric' => 'cpu_usage' }, 'unit' => '%' },
+                { 'name' => 'memory', 'plugin' => 'govc', 'params' => { 'target_type' => 'vm', 'metric' => 'memory_usage' }, 'unit' => '%' },
+                { 'name' => 'disk', 'plugin' => 'govc', 'params' => { 'target_type' => 'vm', 'metric' => 'disk_usage' }, 'unit' => '%' },
               ]
             end
         end
@@ -124,10 +124,32 @@ module Rbmonitor
     # Sensor hash construction
     # ======================================================
     def build_sensor_hash(snode, resource = {})
+      is_vmware_exsi = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-sensor' }
+      is_vmware_exsi_vm = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-vm-sensor' }
+
+      govc_username = ""
+      govc_password = ""
+      sensor_ip = snode['ipaddress'].nil? ? '0.0.0.0' : snode['ipaddress']
+
+      if is_vmware_exsi
+        govc_username = snode['redborder']['vmware_username'].to_s
+        govc_password = snode['redborder']['vmware_password'].to_s
+      elsif is_vmware_exsi_vm
+        parent_id = snode.dig('redborder', 'parent_id')
+        all_hosts = (resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])
+        parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
+
+        if parent_node
+          govc_username = parent_node['redborder']['vmware_username'].to_s
+          govc_password = parent_node['redborder']['vmware_password'].to_s
+          sensor_ip = parent_node['ipaddress'].nil? ? '0.0.0.0' : parent_node['ipaddress']
+        end
+      end
+
       {
         timeout: 5,
         sensor_name: snode['rbname'] || snode.name,
-        sensor_ip: snode['ipaddress'].nil? ? '0.0.0.0' : snode['ipaddress'],
+        sensor_ip: sensor_ip,
         community: (snode['redborder']['snmp_community'].to_s.empty? ? 'public' : snode['redborder']['snmp_community'].to_s),
         snmp_version: (snode['redborder']['snmp_version'].to_s.empty? ? '2c' : snode['redborder']['snmp_version'].to_s),
         snmp_username: snode['redborder']['snmp_username'].to_s,
@@ -136,6 +158,8 @@ module Rbmonitor
         snmp_auth_password: snode['redborder']['snmp_auth_password'].to_s,
         snmp_priv_protocol: snode['redborder']['snmp_priv_protocol'].to_s,
         snmp_priv_password: snode['redborder']['snmp_priv_password'].to_s,
+        govc_username: govc_username,
+        govc_password: govc_password,
         enrichment: enrich(snode),
         monitors: monitors(snode, resource),
       }

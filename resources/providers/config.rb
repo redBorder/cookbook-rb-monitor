@@ -93,12 +93,12 @@ action :add do
       retries 2
       variables(resource: resource)
       helpers Rbmonitor::Helpers
-      notifies :restart, 'service[redborder-monitor]', :delayed
+      notifies :reload, 'service[redborder-monitor]', :delayed
     end
 
     service 'redborder-monitor' do
       service_name 'redborder-monitor'
-      supports status: true, restart: true, start: true, enable: true
+      supports status: true, restart: true, start: true, reload: true, enable: true
       action [:enable, :start]
     end
     Chef::Log.info('cookbook redborder-monitor has been processed.')

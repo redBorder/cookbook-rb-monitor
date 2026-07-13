@@ -134,80 +134,70 @@ module Rbmonitor
         keys << 'send'
 
         keys.each do |k|
-          val = monitor[k].to_s.dup
+          val = monitor[k]
 
-          val.gsub!('%sensor_ip', resource_node['ipaddress'].to_s)
+          if val.is_a?(String)
+            val = val.dup
+            val.gsub!('%sensor_ip', resource_node['ipaddress'].to_s)
 
-          snmp_community = resource_node['redborder']['snmp_community']
-          snmp_community = 'public' if snmp_community.nil? || snmp_community.empty?
-          val.gsub!('%snmp_community', snmp_community)
+            snmp_community = resource_node['redborder']['snmp_community']
+            snmp_community = 'public' if snmp_community.nil? || snmp_community.empty?
+            val.gsub!('%snmp_community', snmp_community)
 
-          if monitor[k].is_a?(String) && monitor[k].include?('%snmp_')
-            val = clean_snmp_command(val, resource_node['redborder'])
-          end
-
-          val.gsub!('%telnet_user', resource_node['redborder']['telnet_user'].to_s)
-          val.gsub!('%telnet_password', resource_node['redborder']['telnet_password'].to_s)
-
-          rest_user     = resource_node['redborder']['rest_api_user']
-          rest_password = resource_node['redborder']['rest_api_password']
-          redfish_user = resource_node['redborder']['redfish_user']
-          redfish_password = resource_node['redborder']['redfish_password']
-          ipmi_user = resource_node['redborder']['ipmi_user']
-          ipmi_password = resource_node['redborder']['ipmi_password']
-          ip            = resource_node['redborder']['ipaddress']
-
-          # Update ip, user and password for IPMI monitors
-          if (rest_user && rest_password) || (ipmi_user && ipmi_password)
-            user = rest_user
-            password = rest_password
-            if ipmi_user && ipmi_password
-              user = ipmi_user
-              password = ipmi_password
+            if val.include?('%snmp_')
+              val = clean_snmp_command(val, resource_node['redborder'])
             end
-            cmd = "rb_get_sensor.sh -i #{ip} -u #{user} -p #{password}"
-            val.gsub!('rb_get_sensor.sh', cmd)
-          end
 
-          # Update ip, user and password for REDFISH monitors
-          if (rest_user && rest_password) || (redfish_user && redfish_password)
-            user = rest_user
-            password = rest_password
-            if redfish_user && redfish_password
-              user = redfish_user
-              password = redfish_password
+            val.gsub!('%telnet_user', resource_node['redborder']['telnet_user'].to_s)
+            val.gsub!('%telnet_password', resource_node['redborder']['telnet_password'].to_s)
+
+            rest_user     = resource_node['redborder']['rest_api_user']
+            rest_password = resource_node['redborder']['rest_api_password']
+            redfish_user = resource_node['redborder']['redfish_user']
+            redfish_password = resource_node['redborder']['redfish_password']
+            ipmi_user = resource_node['redborder']['ipmi_user']
+            ipmi_password = resource_node['redborder']['ipmi_password']
+            ip            = resource_node['redborder']['ipaddress']
+
+            # Update ip, user and password for IPMI monitors
+            if (rest_user && rest_password) || (ipmi_user && ipmi_password)
+              user = ipmi_user || rest_user
+              password = ipmi_password || rest_password
+              cmd = "rb_get_sensor.sh -i #{ip} -u #{user} -p #{password}"
+              val.gsub!('rb_get_sensor.sh', cmd)
             end
-            cmd = "rb_get_redfish.sh -i #{ip} -u #{user} -p #{password}"
-            val.gsub!('rb_get_redfish.sh', cmd)
-          end
 
-          # Update ip, user and password for VMware ESXi VM monitors
-          if val.include?('rb_vmware_exsi_vm_monitor.sh')
-            parent_id = resource_node['redborder']['parent_id']
-            all_hosts = (resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])
-            parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
+            # Update ip, user and password for REDFISH monitors
+            if (rest_user && rest_password) || (redfish_user && redfish_password)
+              user = redfish_user || rest_user
+              password = redfish_password || rest_password
+              cmd = "rb_get_redfish.sh -i #{ip} -u #{user} -p #{password}"
+              val.gsub!('rb_get_redfish.sh', cmd)
+            end
 
-            vmware_user       = parent_node ? parent_node['redborder']['vmware_username'] : ''
-            vmware_password   = parent_node ? parent_node['redborder']['vmware_password'] : ''
-            ip                = parent_node ? parent_node['redborder']['ipaddress'] : ''
-            vm_name           = resource_node['rbname'] || resource_node.name
+            # Update ip, user and password for VMware ESXi VM monitors
+            if val.include?('rb_vmware_exsi_vm_monitor.sh')
+              parent_id = resource_node['redborder']['parent_id']
+              all_hosts = (resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])
+              parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
 
-            cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_vm_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password} -n #{vm_name}"
-            val.gsub!('rb_vmware_exsi_vm_monitor.sh', cmd)
+              vmware_user       = parent_node ? parent_node['redborder']['vmware_username'] : ''
+              vmware_password   = parent_node ? parent_node['redborder']['vmware_password'] : ''
+              ip                = parent_node ? parent_node['redborder']['ipaddress'] : ''
+              vm_name           = resource_node['rbname'] || resource_node.name
 
-          # Update ip, user and password for VMware ESXi Host monitors
-          elsif val.include?('rb_vmware_exsi_monitor.sh')
-            vmware_user       = resource_node['redborder']['vmware_username'] || ''
-            vmware_password   = resource_node['redborder']['vmware_password'] || ''
-            ip                = resource_node['redborder']['ipaddress'] || ''
+              cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_vm_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password} -n #{vm_name}"
+              val.gsub!('rb_vmware_exsi_vm_monitor.sh', cmd)
 
-            cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password}"
-            val.gsub!('rb_vmware_exsi_monitor.sh', cmd)
-          end
+            # Update ip, user and password for VMware ESXi Host monitors
+            elsif val.include?('rb_vmware_exsi_monitor.sh')
+              vmware_user       = resource_node['redborder']['vmware_username'] || ''
+              vmware_password   = resource_node['redborder']['vmware_password'] || ''
+              ip                = resource_node['redborder']['ipaddress'] || ''
 
-          # Format monitor enrichment as a correct JSON being a Ruby hash if is a endpoint
-          if monitor[k].is_a?(Hash) && !monitor[k]['endpoint'].nil?
-            val = monitor[k]
+              cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password}"
+              val.gsub!('rb_vmware_exsi_monitor.sh', cmd)
+            end
           end
 
           monitor[k] = val
