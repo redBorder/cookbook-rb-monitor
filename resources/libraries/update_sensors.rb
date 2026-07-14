@@ -61,8 +61,8 @@ module Rbmonitor
       nodes.each_with_index do |snode, index|
         next unless snode['redborder']
 
-        is_vmware_exsi = snode.roles.include?('vmware-exsi-sensor')
-        is_vmware_exsi_vm = snode.roles.include?('vmware-exsi-vm-sensor')
+        is_vmware_exsi = snode.primary_runlist.roles.include?('vmware-exsi-sensor')
+        is_vmware_exsi_vm = snode.primary_runlist.roles.include?('vmware-exsi-vm-sensor')
 
         if (is_vmware_exsi || is_vmware_exsi_vm) && snode['redborder']['monitors'].nil?
           snode.normal['redborder'] ||= {}
@@ -123,7 +123,7 @@ module Rbmonitor
     # Sensor hash construction
     # ======================================================
     def build_sensor_hash(snode, resource = {})
-      is_vm = snode.roles.include?('vmware-exsi-vm-sensor')
+      is_vm = snode.primary_runlist.roles.include?('vmware-exsi-vm-sensor')
       host_node = is_vm ? ((resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])).find { |n| n.name == "rbvmware-exsi-#{snode.dig('redborder', 'parent_id')}" } : snode
 
       govc_user = host_node ? host_node.dig('redborder', 'vmware_username').to_s : ''
