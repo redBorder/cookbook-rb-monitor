@@ -61,8 +61,8 @@ module Rbmonitor
       nodes.each_with_index do |snode, index|
         next unless snode['redborder']
 
-        is_vmware_exsi = snode.primary_runlist.roles.include?('vmware-exsi-sensor')
-        is_vmware_exsi_vm = snode.primary_runlist.roles.include?('vmware-exsi-vm-sensor')
+        is_vmware_exsi = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-sensor' }
+        is_vmware_exsi_vm = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-vm-sensor' }
 
         if (is_vmware_exsi || is_vmware_exsi_vm) && snode['redborder']['monitors'].nil?
           snode.normal['redborder'] ||= {}
