@@ -61,9 +61,10 @@ module Rbmonitor
       nodes.each_with_index do |snode, index|
         next unless snode['redborder']
 
-        is_vmware_exsi = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-sensor' }
-        is_vmware_exsi_vm = snode.primary_runlist.run_list_items.any? { |item| item.name == 'vmware-exsi-vm-sensor' }
+        is_vmware_exsi = snode.primary_runlist.roles.include?('vmware-exsi-sensor')
+        is_vmware_exsi_vm = snode.primary_runlist.roles.include?('vmware-exsi-vm-sensor')
 
+        # Ensure defaults are initialized for VMware sensors
         if (is_vmware_exsi || is_vmware_exsi_vm) && snode['redborder']['monitors'].nil?
           snode.normal['redborder'] ||= {}
           snode.normal['redborder']['monitors'] =
@@ -81,6 +82,8 @@ module Rbmonitor
               ]
             end
         end
+
+
 
         next unless snode['redborder']['monitors'] && !snode['redborder']['monitors'].empty?
 
@@ -123,12 +126,27 @@ module Rbmonitor
     # Sensor hash construction
     # ======================================================
     def build_sensor_hash(snode, resource = {})
-      is_vm = snode.primary_runlist.roles.include?('vmware-exsi-vm-sensor')
-      host_node = is_vm ? ((resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])).find { |n| n.name == "rbvmware-exsi-#{snode.dig('redborder', 'parent_id')}" } : snode
+      is_vmware_exsi = snode.primary_runlist.roles.include?('vmware-exsi-sensor')
+      is_vmware_exsi_vm = snode.primary_runlist.roles.include?('vmware-exsi-vm-sensor')
 
-      govc_user = host_node ? host_node.dig('redborder', 'vmware_username').to_s : ''
-      govc_pass = host_node ? host_node.dig('redborder', 'vmware_password').to_s : ''
-      sensor_ip = (is_vm && host_node) ? host_node['ipaddress'].to_s : snode['ipaddress'].to_s
+      govc_username = ""
+      govc_password = ""
+      sensor_ip = snode['ipaddress'].nil? ? '0.0.0.0' : snode['ipaddress']
+
+      if is_vmware_exsi
+        govc_username = snode['redborder']['vmware_username'].to_s
+        govc_password = snode['redborder']['vmware_password'].to_s
+      elsif is_vmware_exsi_vm
+        parent_id = snode.dig('redborder', 'parent_id')
+        all_hosts = (resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])
+        parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
+
+        if parent_node
+          govc_username = parent_node['redborder']['vmware_username'].to_s
+          govc_password = parent_node['redborder']['vmware_password'].to_s
+          sensor_ip = parent_node['ipaddress'].nil? ? '0.0.0.0' : parent_node['ipaddress']
+        end
+      end
 
       {
         timeout: 5,
@@ -142,8 +160,8 @@ module Rbmonitor
         snmp_auth_password: snode['redborder']['snmp_auth_password'].to_s,
         snmp_priv_protocol: snode['redborder']['snmp_priv_protocol'].to_s,
         snmp_priv_password: snode['redborder']['snmp_priv_password'].to_s,
-        govc_username: govc_user,
-        govc_password: govc_pass,
+        govc_username: govc_username,
+        govc_password: govc_password,
         enrichment: enrich(snode),
         monitors: monitors(snode, resource),
       }

@@ -113,6 +113,29 @@ module Rbmonitor
 
       resource_node['redborder']['monitors'].each do |resource_node_monitor|
         monitor = resource_node_monitor.to_hash
+
+        # Upgrade legacy SNMP walk commands to structured snmp_walk plugin
+        if monitor['system'].is_a?(String) && monitor['system'] =~ /(?:snmpbulkwalk|snmpwalk|snmpget)/
+          match = monitor['system'].match(/(?:snmpbulkwalk|snmpwalk|snmpget)\s+.*?\s+([\.\d\w\:\-]+)\s*(?:\||$)/)
+          if match
+            monitor.delete('system')
+            monitor['plugin'] = 'snmp_walk'
+            monitor['params'] = { 'oid' => match[1] }
+            monitor['send'] = 1
+          end
+        end
+
+        # Upgrade legacy pkts_lost command to structured ping plugin
+        if monitor['name'] == 'pkts_lost' && monitor['system'].is_a?(String)
+          monitor.delete('system')
+          monitor['plugin'] = 'ping'
+          monitor['params'] = {
+            'count' => 10,
+            'interval_ms' => 20
+          }
+          monitor['send'] = 1
+        end
+
         name    = monitor['name']
         operation = monitor['system']
         next unless name
@@ -212,6 +235,10 @@ module Rbmonitor
           end
 
           monitor[k] = val
+        end
+
+        if monitor['params'].is_a?(Hash) && monitor['params']['host'].is_a?(String)
+          monitor['params']['host'] = monitor['params']['host'].gsub('%sensor_ip', resource_node['ipaddress'].to_s)
         end
 
         monitor['send'] = send_flag
