@@ -134,8 +134,7 @@ module Rbmonitor
         keys << 'send'
 
         keys.each do |k|
-          next unless monitor[k].is_a?(String)
-          val = monitor[k].dup
+          val = monitor[k].to_s.dup
 
           val.gsub!('%sensor_ip', resource_node['ipaddress'].to_s)
 
