@@ -91,11 +91,11 @@ module Rbmonitor
         next if !snode['ipaddress'] && !is_http_agent && !is_vmware_exsi_vm
 
         # Exclude nodes that are children of proxies
-        parent_id = snode.dig('redborder', 'parent_id')
+        parent_id = snode['redborder'] && snode['redborder']['parent_id']
         if is_vmware_exsi_vm
           all_hosts = (resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])
           parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
-          host_parent_id = parent_node&.dig('redborder', 'parent_id')
+          host_parent_id = parent_node && parent_node['redborder'] && parent_node['redborder']['parent_id']
           next if exclude_parent_ids&.include?(host_parent_id)
         elsif exclude_parent_ids&.include?(parent_id)
           next
@@ -126,9 +126,27 @@ module Rbmonitor
     # Sensor hash construction
     # ======================================================
     def build_sensor_hash(snode, resource = {})
-      sensor_ip = snode.dig('redborder', 'sensor_ip') || snode['ipaddress'] || '0.0.0.0'
-      govc_username = snode.dig('redborder', 'govc_username').to_s
-      govc_password = snode.dig('redborder', 'govc_password').to_s
+      is_vmware_exsi = snode.primary_runlist.roles.include?('vmware-exsi-sensor')
+      is_vmware_exsi_vm = snode.primary_runlist.roles.include?('vmware-exsi-vm-sensor')
+
+      govc_username = ""
+      govc_password = ""
+      sensor_ip = snode['ipaddress']
+
+      if is_vmware_exsi
+        govc_username = snode['redborder']['vmware_username'].to_s
+        govc_password = snode['redborder']['vmware_password'].to_s
+      elsif is_vmware_exsi_vm
+        parent_id = snode.dig('redborder', 'parent_id')
+        all_hosts = (resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])
+        parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
+
+        if parent_node
+          govc_username = parent_node['redborder']['vmware_username'].to_s
+          govc_password = parent_node['redborder']['vmware_password'].to_s
+          sensor_ip = parent_node['ipaddress']
+        end
+      end
 
       {
         timeout: 5,
