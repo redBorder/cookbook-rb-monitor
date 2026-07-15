@@ -182,7 +182,6 @@ module Rbmonitor
             val.gsub!('rb_get_redfish.sh', cmd)
           end
 
-
           # Format monitor enrichment as a correct JSON being a Ruby hash if is a endpoint
           if monitor[k].is_a?(Hash) && !monitor[k]['endpoint'].nil?
             val = monitor[k]

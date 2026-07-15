@@ -61,7 +61,6 @@ module Rbmonitor
       nodes.each_with_index do |snode, index|
         next unless snode['redborder']
 
-        is_vmware_exsi = snode.primary_runlist.roles.include?('vmware-exsi-sensor')
         is_vmware_exsi_vm = snode.primary_runlist.roles.include?('vmware-exsi-vm-sensor')
 
         next unless snode['redborder']['monitors'] && !snode['redborder']['monitors'].empty?
@@ -108,8 +107,8 @@ module Rbmonitor
       is_vmware_exsi = snode.primary_runlist.roles.include?('vmware-exsi-sensor')
       is_vmware_exsi_vm = snode.primary_runlist.roles.include?('vmware-exsi-vm-sensor')
 
-      govc_username = ""
-      govc_password = ""
+      govc_username = ''
+      govc_password = ''
       sensor_ip = snode['ipaddress']
 
       if is_vmware_exsi
