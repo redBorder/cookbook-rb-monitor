@@ -141,7 +141,7 @@ module Rbmonitor
         govc_username: govc_username,
         govc_password: govc_password,
         enrichment: enrich(snode),
-        monitors: monitors(snode, resource),
+        monitors: monitors(snode),
       }
     end
   end

@@ -97,7 +97,7 @@ module Rbmonitor
       result.strip.squeeze('')
     end
 
-    def monitors(resource_node, resource = {})
+    def monitors(resource_node)
       return [] unless resource_node && resource_node['redborder'] && resource_node['redborder']['monitors']
 
       monitors = []
