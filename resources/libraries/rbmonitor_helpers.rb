@@ -114,28 +114,6 @@ module Rbmonitor
       resource_node['redborder']['monitors'].each do |resource_node_monitor|
         monitor = resource_node_monitor.to_hash
         
-        # Upgrade legacy SNMP walk commands to structured snmp_walk plugin
-        if monitor['system'].is_a?(String) && monitor['system'] =~ /(?:snmpbulkwalk|snmpwalk|snmpget)/
-          match = monitor['system'].match(/(?:snmpbulkwalk|snmpwalk|snmpget)\s+.*?\s+([\.\d\w\:\-]+)\s*(?:\||$)/)
-          if match
-            monitor.delete('system')
-            monitor['plugin'] = 'snmp_walk'
-            monitor['params'] = { 'oid' => match[1] }
-            monitor['send'] = 1
-          end
-        end
-
-        # Upgrade legacy pkts_lost command to structured ping plugin
-        if monitor['name'] == 'pkts_lost' && monitor['system'].is_a?(String)
-          monitor.delete('system')
-          monitor['plugin'] = 'ping'
-          monitor['params'] = {
-            'count' => 10,
-            'interval_ms' => 20
-          }
-          monitor['send'] = 1
-        end
-
         name    = monitor['name']
         operation = monitor['system']
         next unless name
@@ -205,29 +183,6 @@ module Rbmonitor
             val.gsub!('rb_get_redfish.sh', cmd)
           end
 
-          # Update ip, user and password for VMware ESXi VM monitors
-          if val.include?('rb_vmware_exsi_vm_monitor.sh')
-            parent_id = resource_node['redborder']['parent_id']
-            all_hosts = (resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])
-            parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
-
-            vmware_user       = parent_node ? parent_node['redborder']['vmware_username'] : ''
-            vmware_password   = parent_node ? parent_node['redborder']['vmware_password'] : ''
-            ip                = parent_node ? parent_node['redborder']['ipaddress'] : ''
-            vm_name           = resource_node['rbname'] || resource_node.name
-
-            cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_vm_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password} -n #{vm_name}"
-            val.gsub!('rb_vmware_exsi_vm_monitor.sh', cmd)
-
-          # Update ip, user and password for VMware ESXi Host monitors
-          elsif val.include?('rb_vmware_exsi_monitor.sh')
-            vmware_user       = resource_node['redborder']['vmware_username'] || ''
-            vmware_password   = resource_node['redborder']['vmware_password'] || ''
-            ip                = resource_node['redborder']['ipaddress'] || ''
-
-            cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password}"
-            val.gsub!('rb_vmware_exsi_monitor.sh', cmd)
-          end
 
           # Format monitor enrichment as a correct JSON being a Ruby hash if is a endpoint
           if monitor[k].is_a?(Hash) && !monitor[k]['endpoint'].nil?

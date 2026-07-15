@@ -64,27 +64,6 @@ module Rbmonitor
         is_vmware_exsi = snode.primary_runlist.roles.include?('vmware-exsi-sensor')
         is_vmware_exsi_vm = snode.primary_runlist.roles.include?('vmware-exsi-vm-sensor')
 
-        # Ensure defaults are initialized for VMware sensors
-        if (is_vmware_exsi || is_vmware_exsi_vm) && snode['redborder']['monitors'].nil?
-          snode.normal['redborder'] ||= {}
-          snode.normal['redborder']['monitors'] =
-            if is_vmware_exsi
-              [
-                { 'name' => 'cpu', 'plugin' => 'govc', 'params' => { 'target_type' => 'host', 'metric' => 'cpu_usage' }, 'unit' => '%' },
-                { 'name' => 'memory', 'plugin' => 'govc', 'params' => { 'target_type' => 'host', 'metric' => 'memory_usage' }, 'unit' => '%' },
-                { 'name' => 'disk', 'plugin' => 'govc', 'params' => { 'target_type' => 'host', 'metric' => 'disk_usage' }, 'unit' => '%' },
-              ]
-            else
-              [
-                { 'name' => 'cpu', 'plugin' => 'govc', 'params' => { 'target_type' => 'vm', 'metric' => 'cpu_usage' }, 'unit' => '%' },
-                { 'name' => 'memory', 'plugin' => 'govc', 'params' => { 'target_type' => 'vm', 'metric' => 'memory_usage' }, 'unit' => '%' },
-                { 'name' => 'disk', 'plugin' => 'govc', 'params' => { 'target_type' => 'vm', 'metric' => 'disk_usage' }, 'unit' => '%' },
-              ]
-            end
-        end
-
-
-
         next unless snode['redborder']['monitors'] && !snode['redborder']['monitors'].empty?
 
         is_http_agent = snode.primary_runlist.run_list_items.any? { |item| item.name == 'http_agent-sensor' }
