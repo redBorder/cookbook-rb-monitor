@@ -192,7 +192,7 @@ module Rbmonitor
 
         if monitor['params'].is_a?(Hash) && monitor['params']['host'].is_a?(String)
           monitor['params']['host'] = monitor['params']['host'].gsub('%sensor_ip', resource_node['ipaddress'].to_s)
-        end 
+        end
         monitor['send'] = send_flag
         inserted[name]  = true
         inserted_operations << operation
