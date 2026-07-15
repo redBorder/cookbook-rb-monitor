@@ -113,7 +113,6 @@ module Rbmonitor
 
       resource_node['redborder']['monitors'].each do |resource_node_monitor|
         monitor = resource_node_monitor.to_hash
-        
         name    = monitor['name']
         operation = monitor['system']
         next unless name
