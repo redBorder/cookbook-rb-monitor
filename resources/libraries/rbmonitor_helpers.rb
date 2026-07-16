@@ -217,7 +217,7 @@ module Rbmonitor
         'debug': log_level,
         'stdout': 1,
         'syslog': 0,
-        'threads': [node.default['redborder']['monitor']['count'] / 8, 5].min,
+        'threads': [node.default['redborder']['monitor']['count'] / 8, 10].min,
         'timeout': 40,
         'max_snmp_fails': 2,
         'max_kafka_fails': 2,
