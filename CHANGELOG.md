@@ -6,19 +6,10 @@ cookbook-rb-monitor CHANGELOG
   - Nils
     - [d32328e] update amount of threads
     - [72bce1e] remove unused parameter
-    - [f950c75] fix lint2.0
-    - [2ec1ab4] fix lint
-    - [03f0e44] remove whitespace
-    - [25f5a54] clean up code that should not be there
     - [6275b31] fix bug with credentials govc
-    - [f27bfe2] clean up code
     - [d5e4b99] update sensor information
-    - [89aff93] clean up code
     - [5235843] fix role retrieval
-    - [b4ac66c] refactor and fix lint
     - [269e3aa] fix build of sensor hash
-    - [cb84cf7] restore
-    - [568d027] restore some original code
     - [5d186d2] update monitor config file for exsi vm sensors
 
 ## 0.8.1
