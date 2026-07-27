@@ -97,7 +97,7 @@ module Rbmonitor
       result.strip.squeeze('')
     end
 
-    def monitors(resource_node, resource = {})
+    def monitors(resource_node)
       return [] unless resource_node && resource_node['redborder'] && resource_node['redborder']['monitors']
 
       monitors = []
@@ -134,7 +134,8 @@ module Rbmonitor
         keys << 'send'
 
         keys.each do |k|
-          val = monitor[k].to_s.dup
+          next unless monitor[k].is_a?(String)
+          val = monitor[k].dup
 
           val.gsub!('%sensor_ip', resource_node['ipaddress'].to_s)
 
@@ -181,30 +182,6 @@ module Rbmonitor
             val.gsub!('rb_get_redfish.sh', cmd)
           end
 
-          # Update ip, user and password for VMware ESXi VM monitors
-          if val.include?('rb_vmware_exsi_vm_monitor.sh')
-            parent_id = resource_node['redborder']['parent_id']
-            all_hosts = (resource['vmware_exsi_nodes'] || []) + (resource['proxy_vmware_exsi_nodes'] || [])
-            parent_node = all_hosts.find { |n| n.name == "rbvmware-exsi-#{parent_id}" }
-
-            vmware_user       = parent_node ? parent_node['redborder']['vmware_username'] : ''
-            vmware_password   = parent_node ? parent_node['redborder']['vmware_password'] : ''
-            ip                = parent_node ? parent_node['redborder']['ipaddress'] : ''
-            vm_name           = resource_node['rbname'] || resource_node.name
-
-            cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_vm_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password} -n #{vm_name}"
-            val.gsub!('rb_vmware_exsi_vm_monitor.sh', cmd)
-
-          # Update ip, user and password for VMware ESXi Host monitors
-          elsif val.include?('rb_vmware_exsi_monitor.sh')
-            vmware_user       = resource_node['redborder']['vmware_username'] || ''
-            vmware_password   = resource_node['redborder']['vmware_password'] || ''
-            ip                = resource_node['redborder']['ipaddress'] || ''
-
-            cmd = "/usr/lib/redborder/bin/rb_vmware_exsi_monitor.sh -i #{ip} -u #{vmware_user} -p #{vmware_password}"
-            val.gsub!('rb_vmware_exsi_monitor.sh', cmd)
-          end
-
           # Format monitor enrichment as a correct JSON being a Ruby hash if is a endpoint
           if monitor[k].is_a?(Hash) && !monitor[k]['endpoint'].nil?
             val = monitor[k]
@@ -213,6 +190,9 @@ module Rbmonitor
           monitor[k] = val
         end
 
+        if monitor['params'].is_a?(Hash) && monitor['params']['host'].is_a?(String)
+          monitor['params']['host'] = monitor['params']['host'].gsub('%sensor_ip', resource_node['ipaddress'].to_s)
+        end
         monitor['send'] = send_flag
         inserted[name]  = true
         inserted_operations << operation
@@ -237,7 +217,7 @@ module Rbmonitor
         'debug': log_level,
         'stdout': 1,
         'syslog': 0,
-        'threads': [node.default['redborder']['monitor']['count'] / 8, 5].min,
+        'threads': [node.default['redborder']['monitor']['count'] / 8, 10].min,
         'timeout': 40,
         'max_snmp_fails': 2,
         'max_kafka_fails': 2,

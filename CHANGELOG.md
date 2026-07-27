@@ -1,6 +1,17 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.9.0
+
+  - Nils
+    - [d32328e] update amount of threads
+    - [72bce1e] remove unused parameter
+    - [6275b31] fix bug with credentials govc
+    - [d5e4b99] update sensor information
+    - [5235843] fix role retrieval
+    - [269e3aa] fix build of sensor hash
+    - [5d186d2] update monitor config file for exsi vm sensors
+
 ## 0.8.1
 
   - Vimesa
