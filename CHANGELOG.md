@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.9.1
+
+  - david vhk
+    - [c8154af] fix loading next_manager information (#67)
+
 ## 0.9.0
 
   - Nils
