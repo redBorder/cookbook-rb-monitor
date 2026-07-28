@@ -8,7 +8,7 @@ module Rbmonitor
         managers = resource['managers']
         if managers.length > 1
           next_manager = managers.at((managers.index(resource['hostname']) + 1) % managers.length)
-          next_manager_ip = node.default['redborder']['cluster_info']['next_manager']['ip']
+          next_manager_ip = node.default['redborder']['cluster_info'][next_manager]['ip']
           sensor = {
             'timeout' => 5,
             'sensor_name' => next_manager,
