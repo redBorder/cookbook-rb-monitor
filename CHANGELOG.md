@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 0.9.2
+
+  - david vhk
+    - [012a2ff] Bug/#26087 adapt http timeouts and connections (#69)
+
 ## 0.9.1
 
   - david vhk
