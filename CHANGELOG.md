@@ -5,7 +5,6 @@ cookbook-rb-monitor CHANGELOG
 
   - david vhk
     - [012a2ff] Bug/#26087 adapt http timeouts and connections (#69)
-    - [c8154af] fix loading next_manager information (#67)
 
 ## 0.9.1
 
