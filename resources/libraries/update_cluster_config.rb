@@ -23,8 +23,8 @@ module Rbmonitor
               { 'name': 'pkts_percent_rcv', 'op': '100 - pkts_lost', 'unit': '%' },
             ],
           }
-          node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + 3
-          node.default['redborder']['monitor']['config']['sensors'].push(sensor)
+          node.run_state['rbmonitor']['count'] = node.run_state['rbmonitor']['count'] + 3
+          node.run_state['rbmonitor']['config']['sensors'].push(sensor)
         end
       rescue
         puts 'Cant access to manager list, skipping metrics between managers'
