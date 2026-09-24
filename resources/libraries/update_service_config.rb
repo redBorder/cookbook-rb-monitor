@@ -17,7 +17,7 @@ module Rbmonitor
       #         {'name': 'yarn_apps_pending', 'system': '/opt/rb/bin/rb_get_yarn_capacity.sh -p 2>/dev/null', 'unit': 'tasks', 'integer': 1}
       #       ]
       #     }
-      #     node.default['redborder']['monitor']['config']['sensors'].push(sensor)
+      #     node.run_state['rbmonitor']['config']['sensors'].push(sensor)
       #   end
       # rescue
       #   puts 'Error accessing to redborder service list, skipping hadoop-resourcemanager monitorization'
@@ -38,8 +38,8 @@ module Rbmonitor
               { 'name': 'desired_capacity', 'system': '/usr/lib/redborder/bin/rb_get_tasks.sh -dn 2>/dev/null', 'unit': 'task%', 'integer': 1 },
             ],
           }
-          node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + 3
-          node.default['redborder']['monitor']['config']['sensors'].push(sensor)
+          node.run_state['rbmonitor']['count'] = node.run_state['rbmonitor']['count'] + 3
+          node.run_state['rbmonitor']['config']['sensors'].push(sensor)
         end
       rescue
         puts 'Error accessing to redborder service list, skipping druid-overlord monitorization'
@@ -59,8 +59,8 @@ module Rbmonitor
               { 'name': 'default_tier_capacity', 'system': '/usr/lib/redborder/bin/rb_get_tiers.sh -t _default_tier 2>/dev/null', 'unit': '%', 'integer' => 1 },
             ],
           }
-          node.default['redborder']['monitor']['count'] = node.default['redborder']['monitor']['count'] + 2
-          node.default['redborder']['monitor']['config']['sensors'].push(sensor)
+          node.run_state['rbmonitor']['count'] = node.run_state['rbmonitor']['count'] + 2
+          node.run_state['rbmonitor']['config']['sensors'].push(sensor)
         end
       rescue
         puts 'Error accessing to redborder service list, skipping druid-coordinator monitorization'

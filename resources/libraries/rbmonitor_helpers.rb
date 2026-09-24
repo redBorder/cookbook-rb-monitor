@@ -207,17 +207,20 @@ module Rbmonitor
       kafka_topic = resource['kafka_topic']
       log_level = resource['log_level']
 
+      # Keep the generated config in run_state so it is not saved into the node object
+      node.run_state['rbmonitor'] = { 'count' => 0, 'config' => { 'sensors' => [], 'conf' => {} } }
+
       # Calls to add monitors
       update_cluster_config(resource)
       update_service_config(resource)
       update_manager_config(resource)
       update_sensors(resource)
 
-      node.default['redborder']['monitor']['config']['conf'] = {
+      node.run_state['rbmonitor']['config']['conf'] = {
         'debug': log_level,
         'stdout': 1,
         'syslog': 0,
-        'threads': [node.default['redborder']['monitor']['count'] / 8, 10].min,
+        'threads': [node.run_state['rbmonitor']['count'] / 8, 10].min,
         'timeout': 40,
         'max_snmp_fails': 2,
         'max_kafka_fails': 2,
@@ -231,7 +234,7 @@ module Rbmonitor
            node['redborder']['cloud'] == true ||
            node['redborder']['cloud'] == 'true')) &&
          node['redborder']['sensor_id'] && node['redborder']['sensor_id'].to_i > 0
-        node.default['redborder']['monitor']['config']['conf'].merge!(
+        node.run_state['rbmonitor']['config']['conf'].merge!(
           'http_endpoint': "https://http2k.#{node['redborder']['cdomain']}/rbdata/#{node['redborder']['sensor_uuid']}/rb_monitor",
           'http_max_total_connections': 10,
           'http_timeout': 10,
@@ -242,14 +245,14 @@ module Rbmonitor
           'rb_http_mode': 'normal'
         )
       else
-        node.default['redborder']['monitor']['config']['conf'].merge!(
+        node.run_state['rbmonitor']['config']['conf'].merge!(
          'kafka_broker': 'kafka.service',
          'kafka_timeout': 2,
          'kafka_topic': kafka_topic)
       end
 
       # Send the hash with all the sensors and the configuration to the template
-      node.default['redborder']['monitor']['config']
+      node.run_state['rbmonitor']['config']
     end
   end
 end
