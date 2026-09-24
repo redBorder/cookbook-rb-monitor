@@ -15,7 +15,7 @@ module Rbmonitor
     # Main
     # ======================================================
     def update_sensors(resource)
-      node.default['redborder']['monitor']['config']['sensors'] << '/* Remote sensors */'
+      node.run_state['rbmonitor']['config']['sensors'] << '/* Remote sensors */'
 
       NODE_TYPES.each do |type, (manager_key, proxy_key)|
         # Proxy sensor IDs to filter children
@@ -55,7 +55,7 @@ module Rbmonitor
     def update_sensor_group(title:, nodes:, manager_list:, hostname:, exclude_parent_ids:, resource: {})
       return if nodes.nil? || nodes.empty?
 
-      node.default['redborder']['monitor']['config']['sensors'] << title
+      node.run_state['rbmonitor']['config']['sensors'] << title
       manager_index = manager_list && hostname ? manager_list.find_index(hostname) : nil
 
       nodes.each_with_index do |snode, index|
@@ -90,12 +90,12 @@ module Rbmonitor
           end
 
         if handle
-          node.default['redborder']['monitor']['config']['sensors'] << "/* Node: #{name}    Monitors: #{count} */"
+          node.run_state['rbmonitor']['config']['sensors'] << "/* Node: #{name}    Monitors: #{count} */"
           sensor = build_sensor_hash(snode, resource)
-          node.default['redborder']['monitor']['count'] += count
-          node.default['redborder']['monitor']['config']['sensors'] << sensor
+          node.run_state['rbmonitor']['count'] += count
+          node.run_state['rbmonitor']['config']['sensors'] << sensor
         else
-          node.default['redborder']['monitor']['config']['sensors'] << "/* Node: #{name}    Monitors: #{count} (not in this manager) */"
+          node.run_state['rbmonitor']['config']['sensors'] << "/* Node: #{name}    Monitors: #{count} (not in this manager) */"
         end
       end
     end
