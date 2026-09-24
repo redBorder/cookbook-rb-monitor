@@ -1,6 +1,7 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+<<<<<<< HEAD
 ## 1.0.0
 
   - Miguel Negrón
@@ -16,6 +17,8 @@ cookbook-rb-monitor CHANGELOG
     - [75b3581] Use run_state instead of default, and remove non use attributes (#71)
     - [43ef94d] Bump version
 
+=======
+>>>>>>> master
 ## 0.9.2
 
   - david vhk
