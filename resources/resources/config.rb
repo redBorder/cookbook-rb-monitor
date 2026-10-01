@@ -9,7 +9,7 @@ attribute :kafka_topic, kind_of: String, default: 'rb_monitor'
 attribute :name, kind_of: String, default: 'localhost'
 attribute :hostip, kind_of: String, default: '127.0.0.1'
 attribute :community, kind_of: String, default: 'redBorder'
-attribute :log_level, kind_of: Integer, default: 3
+attribute :log_level, kind_of: Integer, default: 1
 attribute :device_nodes, kind_of: Array, default: []
 attribute :snmp_nodes, kind_of: Array, default: []
 attribute :redfish_nodes, kind_of: Array, default: []
