@@ -19,7 +19,6 @@ cookbook-rb-monitor CHANGELOG
     - [012a2ff] Bug/#26087 adapt http timeouts and connections (#69)
     - [c8154af] fix loading next_manager information (#67)
 
-<<<<<<< HEAD
 ## 1.0.0
 
   - Miguel Negrón
@@ -35,8 +34,6 @@ cookbook-rb-monitor CHANGELOG
     - [75b3581] Use run_state instead of default, and remove non use attributes (#71)
     - [43ef94d] Bump version
 
-=======
->>>>>>> master
 ## 0.9.2
 
   - david vhk
