@@ -218,7 +218,7 @@ module Rbmonitor
 
       node.run_state['rbmonitor']['config']['conf'] = {
         'debug': log_level,
-        'stdout': 1,
+        'stdout': 0,
         'syslog': 0,
         'threads': [node.run_state['rbmonitor']['count'] / 8, 10].min,
         'timeout': 40,
