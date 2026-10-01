@@ -1,6 +1,24 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 1.0.1
+
+  - manegron
+    - [57f3eb3] Set log level to 1 and stdout to 0 to avoid writting logs all the time
+    - [268d93e] Merge with master
+    - [513fa85] Release 1.0.0
+    - [75b3581] Use run_state instead of default, and remove non use attributes (#71)
+    - [43ef94d] Bump version
+  - Miguel Negrón
+    - [75b3581] Use run_state instead of default, and remove non use attributes (#71)
+  - Vimesa
+    - [19c711a] Merge branch 'master' into development
+  - vimesa
+    - [ab83a47] Release 0.9.2
+  - david vhk
+    - [012a2ff] Bug/#26087 adapt http timeouts and connections (#69)
+    - [c8154af] fix loading next_manager information (#67)
+
 <<<<<<< HEAD
 ## 1.0.0
 
