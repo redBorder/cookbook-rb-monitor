@@ -4,4 +4,3 @@ maintainer_email 'git@redborder.com'
 license          'AGPL-3.0'
 description      'Installs/Configures rb-monitor'
 version          '1.1.0'
-
