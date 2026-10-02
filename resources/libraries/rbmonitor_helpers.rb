@@ -64,7 +64,19 @@ module Rbmonitor
       end
 
       if redborder['building']
+        enrichment['building'] = redborder['building']
+      end
+
+      if redborder['building_uuid']
         enrichment['building_uuid'] = redborder['building_uuid']
+      end
+
+      if redborder['floor']
+        enrichment['floor'] = redborder['floor']
+      end
+
+      if redborder['floor_uuid']
+        enrichment['floor_uuid'] = redborder['floor_uuid']
       end
 
       enrichment
