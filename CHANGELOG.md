@@ -1,6 +1,32 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 1.1.1
+
+  - manegron
+    - [8f5f4cb] Upload cookbook only if opscode-erchef is active
+    - [749d11c] Fix lint
+    - [29176b3] Solve conflics!
+    - [c0379af] Bump version
+    - [0f7b6fc] Add missing floor and floor_uuid and building_uuid
+    - [773fb59] Merge branch 'master' into development
+    - [6841b42] Bump version
+    - [57f3eb3] Set log level to 1 and stdout to 0 to avoid writting logs all the time
+    - [268d93e] Merge with master
+    - [513fa85] Release 1.0.0
+    - [75b3581] Use run_state instead of default, and remove non use attributes (#71)
+    - [43ef94d] Bump version
+  - Miguel Negrón
+    - [773fb59] Merge branch 'master' into development
+    - [75b3581] Use run_state instead of default, and remove non use attributes (#71)
+  - Vimesa
+    - [19c711a] Merge branch 'master' into development
+  - vimesa
+    - [ab83a47] Release 0.9.2
+  - david vhk
+    - [012a2ff] Bug/#26087 adapt http timeouts and connections (#69)
+    - [c8154af] fix loading next_manager information (#67)
+
 ## 1.1.0
 
   - manegron
