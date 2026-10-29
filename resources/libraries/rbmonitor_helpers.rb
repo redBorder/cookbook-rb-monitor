@@ -253,6 +253,7 @@ module Rbmonitor
           'http_connttimeout': 5,
           'http_verbose': 0,
           'rb_http_max_messages': 1024,
+          'rb_http_flush_timer': 1,
           'http_insecure': true,
           'rb_http_mode': 'normal'
         )
