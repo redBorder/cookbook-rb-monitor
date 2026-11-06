@@ -1,6 +1,11 @@
 cookbook-rb-monitor CHANGELOG
 ===============
 
+## 1.2.1
+
+  - David Vanhoucke
+    - [4641905] add default flush timer http
+
 ## 1.1.1
 
   - manegron
